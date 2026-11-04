@@ -6,7 +6,8 @@ Alle Daten bleiben auf dem Gerät. Es gibt kein Konto, keinen Server und kein Tr
 
 ## Funktionen
 
-- **Jetzt im …:** Die wichtigsten Arbeiten des Monats, der nächste Gartentermin (z. B. Eisheilige) und ein Gartenspruch. Die Farben der App wechseln mit der Jahreszeit.
+- **Menü** mit fünf Seiten: Home, Meine Pflanzen, Hilfe, Fragen & Antworten und Impressum.
+- **Jetzt im …:** Die wichtigsten Arbeiten des Monats, der nächste Gartentermin (z. B. Eisheilige) und ein zufälliger Spruch aus 400 Einträgen: Bauernregeln zum Monat, saisonale Inspirationen für Konfitüre, Sirup, Tee und Deko sowie Gartensprüche. Die Farben der App wechseln mit der Jahreszeit.
 - **74 Pflanzen**, eingeteilt in Kräuter, Gemüse, Früchte und Blumen, jeweils mit:
   - Zeitfenstern zum Vorziehen, Säen, Auspflanzen und Ernten
   - Saattiefe, Abstand, Keimdauer und Boden
@@ -14,7 +15,7 @@ Alle Daten bleiben auf dem Gerät. Es gibt kein Konto, keinen Server und kein Tr
   - Pflegetipps sowie guten und schlechten Nachbarn
 - **Zwei Ansichten:** Jahresbalken für den Überblick oder Karten im Stil von Samentütchen.
 - **Lage-Einstellung:** Mild, Mittelland, Voralpen und Höhenlage. Pro Stufe verschieben sich die Termine um etwa zwei Wochen.
-- **Mein Garten:** Du trägst ein, was du gesät oder gepflanzt hast, und siehst einen Fortschrittsbalken bis zur Ernte («Ernte in ca. 3 Wochen», «Jetzt erntereif»).
+- **Meine Pflanzen:** Du trägst ein, was du gesät oder gepflanzt hast. Die Übersicht gruppiert deine Pflanzungen nach «Jetzt erntereif», «Wächst noch» und «Erntezeit vorbei», jeweils mit Fortschrittsbalken bis zur Ernte.
 - **Erinnerungen** als lokale Mitteilungen, ohne Server:
   - Gartentermine am Vorabend
   - der Tag, an dem eine Pflanzung erntereif wird
@@ -28,7 +29,7 @@ Die Termine sind Richtwerte für die Schweiz und Mitteleuropa.
 
 | Pfad | Inhalt |
 |---|---|
-| `www/index.html` | die ganze App: Oberfläche, Pflanzendaten und Logik in einer Datei |
+| `www/index.html` | die ganze App: Oberfläche, Pflanzendaten, Sprüche und Logik in einer Datei. Sie ist zugleich die Hauptdatei für die Web-App und die claude.ai-Version. |
 | `www/icon.svg` | Icon für die Browser-Ansicht |
 | `resources/icon-only.png` | App-Icon, 1024 × 1024 px |
 | `resources/splash.png` | Startbild, 2732 × 2732 px |
