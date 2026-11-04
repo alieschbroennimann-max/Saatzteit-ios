@@ -14,6 +14,8 @@ workflows:
         script: npm install
       - name: iOS-Projekt erzeugen
         script: |
+          # Capacitor-Grundbibliothek für die App ohne Bundler bereitstellen
+          cp node_modules/@capacitor/core/dist/capacitor.js www/capacitor.js
           npx cap add ios
           npx capacitor-assets generate --ios
           npx cap sync ios
