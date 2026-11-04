@@ -12,6 +12,7 @@
 <meta name="apple-mobile-web-app-title" content="Saatzeit">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
+<!-- VARIANT-HEAD: build.ps1 setzt hier die Zeilen für Web-App bzw. Claude-Version ein -->
 <script>
 // Fehler sichtbar machen statt einer stillen, halb leeren App
 window.addEventListener("error", e => {
@@ -119,11 +120,80 @@ button { font: inherit; color: inherit; cursor: pointer; }
 button:focus-visible, select:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
 /* Kopf */
-header { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 20px; }
-.brand { display: flex; flex-direction: column; gap: 8px; max-width: 560px; }
-.brand p { margin: 0; color: var(--muted); }
+.topbar { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; }
+.brand { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.brand h1 a { color: inherit; text-decoration: none; }
 .brand h1 span { color: var(--season-ink); }
+.intro { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px 24px; }
+.intro p { margin: 0; color: var(--muted); max-width: 560px; }
 .settings { display: flex; flex-direction: column; gap: 6px; }
+
+/* Menü */
+.menu { position: relative; flex: none; }
+.menu-btn {
+  display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 8px 14px 8px 18px;
+  border: 1px solid var(--line); background: var(--surface); border-radius: 999px; font-weight: 700;
+}
+.menu-btn:hover { border-color: var(--season); }
+.menu-btn svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+@media (prefers-reduced-motion: no-preference) { .menu-btn svg { transition: transform .15s ease; } }
+.menu-btn[aria-expanded="true"] svg { transform: rotate(180deg); }
+.menu-list {
+  position: absolute; right: 0; top: calc(100% + 8px); z-index: 15; min-width: 250px;
+  display: flex; flex-direction: column; padding: 6px;
+  background: var(--surface); border: 1px solid var(--line); border-radius: 16px; box-shadow: var(--shadow);
+}
+.menu-list a {
+  display: flex; align-items: center; gap: 12px; min-height: 46px; padding: 10px 12px; border-radius: 10px;
+  color: var(--fg); text-decoration: none; font-weight: 500;
+}
+.menu-list a:hover, .menu-list a:focus-visible { background: var(--surface-2); outline: none; }
+.menu-list a[aria-current="page"] { background: var(--season-soft); color: var(--season-ink); font-weight: 700; }
+.menu-list svg { width: 22px; height: 22px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+.menu-list hr { border: 0; border-top: 1px solid var(--line); margin: 4px 8px; }
+
+/* Seiten */
+.view { display: flex; flex-direction: column; gap: 40px; }
+.page-head { display: flex; flex-direction: column; gap: 8px; }
+.page-title { font-size: clamp(2.2rem, 7vw, 3.4rem); font-weight: 800; line-height: 1; }
+.page-head .status { margin: 0; color: var(--muted); }
+.sub { display: flex; flex-direction: column; gap: 10px; }
+.sub > p { margin: 0; max-width: 62ch; }
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; }
+.stat { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px; display: flex; flex-direction: column; gap: 4px; }
+.stat b { font-family: var(--f-display); font-size: 2.2rem; line-height: 1; font-variant-numeric: tabular-nums; }
+.stat.reif b { color: var(--c-ernte); } .stat.wachsend b { color: var(--c-pfl); }
+.egroups { display: flex; flex-direction: column; gap: 28px; }
+.egroup { display: flex; flex-direction: column; gap: 10px; }
+.egroup h3, .egroup summary { display: flex; align-items: center; gap: 10px; }
+.count { font-family: var(--f-mono); font-size: .8rem; font-weight: 500; background: var(--surface-2); border-radius: 999px; padding: 2px 9px; color: var(--muted); }
+details.egroup summary { cursor: pointer; font-family: var(--f-display); font-weight: 700; font-size: 1.05rem; list-style: none; }
+details.egroup summary::-webkit-details-marker { display: none; }
+details.egroup summary::after { content: "Anzeigen"; margin-left: auto; font-family: var(--f-body); font-weight: 400; font-size: .88rem; color: var(--muted); }
+details.egroup[open] summary::after { content: "Ausblenden"; }
+.empty-garden { background: var(--surface); border: 1px dashed var(--line); border-radius: 14px; padding: 24px; display: flex; flex-direction: column; gap: 12px; align-items: flex-start; }
+.empty-garden p { margin: 0; max-width: 56ch; }
+a.btn { color: inherit; text-decoration: none; display: inline-flex; align-items: center; }
+
+/* Hilfe, Fragen, Impressum */
+.prose { max-width: 68ch; display: flex; flex-direction: column; gap: 12px; }
+.prose h3 { margin-top: 14px; font-size: 1.2rem; }
+.prose h3:first-child { margin-top: 0; }
+.prose p, .prose ol, .prose ul { margin: 0; }
+.prose ol, .prose ul { padding-left: 1.3em; display: flex; flex-direction: column; gap: 6px; }
+.prose a { color: var(--accent); font-weight: 700; }
+.legend-list { list-style: none; padding-left: 0 !important; }
+.legend-list li { display: flex; gap: 10px; align-items: baseline; }
+.legend-list .sw { flex: none; transform: translateY(-1px); }
+.ph { background: color-mix(in oklab, var(--c-ernte) 24%, var(--surface)); border-radius: 4px; padding: 0 5px; }
+.faq { display: flex; flex-direction: column; gap: 10px; max-width: 72ch; }
+.faq details { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; }
+.faq summary { cursor: pointer; list-style: none; padding: 14px 16px; min-height: 48px; font-weight: 700; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.faq summary::-webkit-details-marker { display: none; }
+.faq summary::after { content: "+"; font-family: var(--f-mono); font-size: 1.2rem; color: var(--muted); flex: none; }
+.faq details[open] summary::after { content: "–"; }
+.faq details > div { padding: 0 16px 16px; }
+.faq details p { margin: 0; }
 select, input[type="search"] {
   font: inherit; color: var(--fg); background: var(--surface); border: 1px solid var(--line);
   border-radius: 8px; padding: 8px 10px;
@@ -207,7 +277,9 @@ select, input[type="search"] {
 .hero-head { position: relative; display: flex; flex-direction: column; gap: 10px; max-width: 640px; }
 .hero h2 { font-size: clamp(2.2rem, 7vw, 3.6rem); font-weight: 800; line-height: .95; }
 .hero h2 span { color: var(--season-ink); }
-.quote-row { display: flex; align-items: flex-start; gap: 8px; }
+.quote-row { display: flex; align-items: flex-end; gap: 8px; }
+.quote-box { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.qkind { font-family: var(--f-mono); font-size: .75rem; letter-spacing: .08em; text-transform: uppercase; color: var(--season-ink); }
 .quote { margin: 0; font-family: var(--f-display); font-weight: 500; font-size: 1.2rem; line-height: 1.35; max-width: 48ch; }
 .icon-btn { border: 1px solid transparent; background: none; border-radius: 8px; padding: 2px 8px; font-size: 1.1rem; color: var(--muted); }
 .icon-btn:hover { border-color: var(--line); color: var(--fg); }
@@ -268,6 +340,14 @@ select, input[type="search"] {
 .garden-head .status { color: var(--muted); font-size: .85rem; }
 .garden-actions { display: flex; gap: 8px; flex-wrap: wrap; }
 #gmsg:empty { display: none; }
+.gcode { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; display: flex; flex-direction: column; gap: 12px; }
+.gcode p { margin: 0; }
+.gcode label { font-weight: 700; font-size: .9rem; }
+.gcode-form { display: flex; flex-direction: column; gap: 6px; }
+.gcode-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.gcode-row input { flex: 1 1 220px; min-width: 0; font: inherit; color: var(--fg); background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; }
+.gcode-current { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.gcode-current code { font-family: var(--f-mono); font-size: 1rem; background: var(--surface-2); padding: 4px 10px; border-radius: 6px; }
 #remind[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); font-weight: 700; }
 .btn {
   border: 1px solid var(--line); background: var(--surface); border-radius: 8px; padding: 7px 12px; font-size: .88rem;
@@ -276,11 +356,12 @@ select, input[type="search"] {
 .btn.primary { background: var(--accent); color: var(--accent-fg); border-color: var(--accent); font-weight: 700; }
 .btn.danger { border-color: var(--today); color: var(--today); }
 .entries { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; }
-.entry { display: grid; grid-template-columns: 92px minmax(0, 1fr) auto; gap: 4px 14px; align-items: center; padding: 10px 14px; border-top: 1px solid var(--line); }
+.entry { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 6px 14px; align-items: center; padding: 12px 14px; border-top: 1px solid var(--line); }
 .entry:first-child { border-top: 0; }
-.entry time { font-family: var(--f-mono); font-size: .8rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+.entry time { font-family: var(--f-mono); font-size: .85rem; color: var(--muted); font-variant-numeric: tabular-nums; }
 .entry .what { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; min-width: 0; }
-.entry .what .link { border: 0; background: none; padding: 0; font-weight: 700; text-decoration: underline; text-decoration-color: var(--line); text-underline-offset: 3px; }
+.entry .what .link { border: 0; background: none; padding: 0; font-family: var(--f-display); font-size: 1.15rem; font-weight: 700; text-align: left; }
+.entry .what .link:hover { text-decoration: underline; text-underline-offset: 3px; }
 .meta { color: var(--muted); font-size: .85rem; }
 .pill { font-size: .75rem; padding: 2px 8px; border-radius: 999px; color: var(--bg); font-weight: 700; }
 .pill.vor { background: var(--c-vor); } .pill.saat { background: var(--c-saat); } .pill.pfl { background: var(--c-pfl); } .pill.ernte { background: var(--c-ernte); }
@@ -325,6 +406,7 @@ select, input[type="search"] {
 .nb { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
 .nb div { display: flex; flex-direction: column; gap: 6px; }
 footer { color: var(--muted); font-size: .85rem; max-width: 68ch; }
+footer a { color: var(--accent); }
 
 @media (max-width: 860px) {
   .todo { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -350,8 +432,10 @@ input, select, textarea { font-size: max(16px, 1rem) !important; }
   .row { grid-template-columns: minmax(0, 1fr); gap: 6px; }
   .row.head .pname { display: none; }
   .facts, .nb, .plant-form { grid-template-columns: minmax(0, 1fr); }
-  .entry { grid-template-columns: minmax(0, 1fr) auto; }
-  .entry time { grid-column: 1 / -1; }
+  .entry { grid-template-columns: auto minmax(0, 1fr); align-items: start; }
+  .entry .x { grid-column: 2; justify-self: start; }
+  .topbar { align-items: center; }
+  .menu-list { min-width: min(280px, calc(100vw - 32px)); }
   .season-art { width: 140px; height: 140px; opacity: .22; }
   .ev { flex-direction: column; gap: 4px; }
   .hcard { display: grid; grid-template-columns: auto minmax(0, 1fr); column-gap: 14px; row-gap: 2px; align-items: center; padding: 12px 14px; }
@@ -367,12 +451,31 @@ input, select, textarea { font-size: max(16px, 1rem) !important; }
 <body>
 
 <div class="wrap">
-  <header>
+  <header class="topbar">
     <div class="brand">
       <span class="label">Pflanzkalender rund ums Haus</span>
-      <h1>Saat<span>zeit</span></h1>
-      <p>Was du wann, wie und wo säen, pflanzen und ernten kannst. Tippe auf eine Pflanze für alle Details.</p>
+      <h1><a href="#home">Saat<span>zeit</span></a></h1>
     </div>
+    <nav class="menu" aria-label="Hauptmenü">
+      <button class="menu-btn" id="menu-btn" aria-haspopup="true" aria-expanded="false" aria-controls="menu-list">
+        <span id="menu-current">Home</span>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+      </button>
+      <div class="menu-list" id="menu-list" role="menu" hidden>
+        <a role="menuitem" href="#home" data-nav="home"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 11l8-7 8 7"/><path d="M6 10v10h12V10"/><path d="M10 20v-6h4v6"/></svg>Home</a>
+        <a role="menuitem" href="#garten" data-nav="garten"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21V9"/><path d="M12 14c-3.2 0-5.5-2-5.5-5.2 3.2 0 5.5 2 5.5 5.2z"/><path d="M12 11c3.2 0 5.5-2 5.5-5.2-3.2 0-5.5 2-5.5 5.2z"/><path d="M5 21h14"/></svg>Meine Pflanzen</a>
+        <hr>
+        <a role="menuitem" href="#hilfe" data-nav="hilfe"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6v.6"/><path d="M12 17.5v.01"/></svg>Hilfe</a>
+        <a role="menuitem" href="#faq" data-nav="faq"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v11H9l-5 4z"/><path d="M8 9h8M8 12h5"/></svg>Fragen &amp; Antworten</a>
+        <a role="menuitem" href="#impressum" data-nav="impressum"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h9l3 3v15H6z"/><path d="M9 9h6M9 13h6M9 17h4"/></svg>Impressum</a>
+      </div>
+    </nav>
+  </header>
+
+  <!-- Home -->
+  <div class="view" data-view="home">
+  <div class="intro">
+    <p>Was du wann, wie und wo säen, pflanzen und ernten kannst. Tippe auf eine Pflanze für alle Details.</p>
     <div class="settings">
       <label class="label" for="klima">Lage</label>
       <select id="klima">
@@ -381,9 +484,8 @@ input, select, textarea { font-size: max(16px, 1rem) !important; }
         <option value="1">Voralpen oder kühle Lage (650–900 m)</option>
         <option value="2">Höhenlage (über 900 m)</option>
       </select>
-      <button class="btn" id="remind" aria-pressed="false" hidden>Erinnerungen: aus</button>
     </div>
-  </header>
+  </div>
 
   <section class="hero" aria-labelledby="h-now-title">
     <svg class="season-art" id="season-art" viewBox="0 0 120 120" aria-hidden="true"></svg>
@@ -391,7 +493,10 @@ input, select, textarea { font-size: max(16px, 1rem) !important; }
       <span class="label" id="h-date"></span>
       <h2 id="h-now-title">Jetzt im <span id="h-now">November</span></h2>
       <div class="quote-row">
-        <p class="quote" id="quote"></p>
+        <div class="quote-box">
+          <span class="qkind" id="qkind"></span>
+          <p class="quote" id="quote"></p>
+        </div>
         <button class="icon-btn" id="newquote" aria-label="Anderer Spruch" title="Anderer Spruch">↻</button>
       </div>
     </div>
@@ -415,22 +520,6 @@ input, select, textarea { font-size: max(16px, 1rem) !important; }
     <div class="months"><div class="months-inner" id="months"></div></div>
     <div class="todo" id="todo"></div>
     <div class="tasks" id="tasks"></div>
-  </section>
-
-  <section aria-labelledby="h-garden">
-    <div class="garden-head">
-      <div>
-        <h2 id="h-garden">Mein Garten</h2>
-        <span class="status" id="gstatus">Lade Einträge …</span>
-      </div>
-      <div class="garden-actions">
-        <button class="btn" id="export">Sichern</button>
-        <button class="btn" id="import">Wiederherstellen</button>
-        <input type="file" id="importfile" accept="application/json,.json" hidden>
-      </div>
-    </div>
-    <p class="meta" id="gmsg" role="status"></p>
-    <div class="entries" id="entries"></div>
   </section>
 
   <section aria-labelledby="h-all">
@@ -460,9 +549,147 @@ input, select, textarea { font-size: max(16px, 1rem) !important; }
     </div>
     <div class="list" id="list"></div>
   </section>
+  </div>
+
+  <!-- Meine Pflanzen -->
+  <div class="view" data-view="garten" hidden>
+    <section class="page-head" aria-labelledby="h-garden">
+      <span class="label">Dein Gartentagebuch</span>
+      <h2 id="h-garden" class="page-title">Meine Pflanzen</h2>
+      <p class="status" id="gstatus"></p>
+    </section>
+    <div class="stats" id="gstats"></div>
+    <div class="egroups" id="entries"></div>
+
+    <section class="sub" aria-labelledby="h-favs">
+      <h3 id="h-favs">Markiert ★</h3>
+      <div id="favlist"></div>
+    </section>
+
+    <section class="sub" id="gcode-sec" aria-labelledby="h-gcode" hidden>
+      <h3 id="h-gcode">Gemeinsamer Garten</h3>
+      <div class="gcode">
+        <div class="gcode-current" id="gcode-current"></div>
+        <form class="gcode-form" id="gcode-form">
+          <label for="gcode-input">Gartencode eingeben</label>
+          <div class="gcode-row">
+            <input type="text" id="gcode-input" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="z. B. kuerbis-minze-rande-4821">
+            <button class="btn primary" type="submit">Verbinden</button>
+          </div>
+        </form>
+        <div class="gcode-row">
+          <button class="btn" id="gcode-new" type="button">Neuen Garten erstellen</button>
+          <span class="meta" id="gcode-msg" role="status"></span>
+        </div>
+        <p class="meta">Wer den gleichen Gartencode eingibt, sieht und bearbeitet dieselben Einträge. Teile ihn nur mit Leuten, die mitgärtnern sollen.</p>
+      </div>
+    </section>
+
+    <section class="sub" id="remind-sec" aria-labelledby="h-remind" hidden>
+      <h3 id="h-remind">Erinnerungen</h3>
+      <p class="meta">Saatzeit meldet sich am Vorabend wichtiger Gartentermine, wenn eine deiner Pflanzungen erntereif wird, und eine Woche bevor die Zeit für eine markierte Pflanze abläuft.</p>
+      <div><button class="btn" id="remind" aria-pressed="false">Erinnerungen: aus</button></div>
+    </section>
+
+    <section class="sub" aria-labelledby="h-backup">
+      <h3 id="h-backup">Sichern und Wiederherstellen</h3>
+      <p class="meta">Lege ab und zu eine Sicherung ab, zum Beispiel in Dateien oder iCloud Drive. Dann geht beim Handywechsel nichts verloren.</p>
+      <div class="garden-actions">
+        <button class="btn" id="export">Sichern</button>
+        <button class="btn" id="import">Wiederherstellen</button>
+        <input type="file" id="importfile" accept="application/json,.json" hidden>
+      </div>
+      <p class="meta" id="gmsg" role="status"></p>
+    </section>
+  </div>
+
+  <!-- Hilfe -->
+  <div class="view" data-view="hilfe" hidden>
+    <section class="page-head">
+      <span class="label">So funktioniert Saatzeit</span>
+      <h2 class="page-title">Hilfe</h2>
+    </section>
+    <div class="prose">
+      <h3>So fängst du an</h3>
+      <ol>
+        <li><strong>Lage wählen.</strong> Oben auf der Startseite stellst du ein, wie hoch oder mild du wohnst. Alle Termine passen sich an.</li>
+        <li><strong>Schauen, was dran ist.</strong> «Jetzt im …» zeigt die wichtigsten Arbeiten des Monats und den nächsten Gartentermin.</li>
+        <li><strong>Pflanze öffnen.</strong> Tippe auf eine Pflanze. Du siehst, wann, wie und wo sie wächst, dazu Tipps und gute Nachbarn.</li>
+        <li><strong>Eintragen.</strong> Hast du etwas gesät oder gepflanzt, trägst du es in der Pflanze unter «Angepflanzt» ein.</li>
+        <li><strong>Wachsen sehen.</strong> Unter «Meine Pflanzen» siehst du, wann deine Pflanzungen erntereif sind.</li>
+      </ol>
+
+      <h3>Die Farben</h3>
+      <ul class="legend-list">
+        <li><i class="sw vor"></i><span><strong>Drinnen vorziehen:</strong> auf der Fensterbank oder im Gewächshaus säen.</span></li>
+        <li><i class="sw saat"></i><span><strong>Direkt säen:</strong> Samen direkt ins Beet oder in den Topf.</span></li>
+        <li><i class="sw pfl"></i><span><strong>Auspflanzen:</strong> vorgezogene Pflanzen oder Setzlinge nach draussen setzen.</span></li>
+        <li><i class="sw ernte"></i><span><strong>Ernten:</strong> die Zeit, in der du ernten kannst.</span></li>
+      </ul>
+      <p>Der rote Strich in den Jahresbalken markiert das heutige Datum.</p>
+
+      <h3>Pflanzen finden</h3>
+      <p>Unter «Alle Pflanzen» suchst du nach Namen und filterst nach Kräutern, Gemüse, Früchten oder Blumen und nach Standort. Mit «Tütchen» wechselst du von den Jahresbalken zu Karten.</p>
+
+      <h3>Markieren mit ★</h3>
+      <p>Tippe auf den Stern neben einer Pflanze. Markierte Pflanzen erscheinen auf der Startseite zuerst, du kannst die Liste mit «★ Meine» auf sie beschränken, und in der iPhone-App erinnert dich Saatzeit, kurz bevor ihre Zeit abläuft.</p>
+
+      <h3>Einträge löschen</h3>
+      <p>Unter «Meine Pflanzen» oder in der Pflanze selbst auf «Löschen» tippen und nochmals bestätigen.</p>
+
+      <h3>Sichern</h3>
+      <p>Unter «Meine Pflanzen» legst du mit «Sichern» eine Kopie deiner Einträge ab und holst sie mit «Wiederherstellen» zurück.</p>
+
+      <p>Noch Fragen? Schau unter <a href="#faq">Fragen &amp; Antworten</a>.</p>
+    </div>
+  </div>
+
+  <!-- Fragen & Antworten -->
+  <div class="view" data-view="faq" hidden>
+    <section class="page-head">
+      <span class="label">Häufige Fragen</span>
+      <h2 class="page-title">Fragen &amp; Antworten</h2>
+    </section>
+    <div class="faq">
+      <details><summary>Wie genau sind die Termine?</summary><div><p>Es sind Richtwerte für die Schweiz und Mitteleuropa. Das Wetter ist jedes Jahr anders: Ist der Frühling kalt, wartest du lieber eine Woche länger. Mit der Lage-Einstellung passt du die Termine an deine Höhe an.</p></div></details>
+      <details><summary>Was sind die Eisheiligen?</summary><div><p>Die Tage vom 11. bis 15. Mai. Bis dann kann es nachts noch Frost geben. Frostempfindliche Pflanzen wie Tomaten, Gurken, Kürbis oder Basilikum setzt du erst danach ins Freie.</p></div></details>
+      <details><summary>Was bedeuten Lichtkeimer und Dunkelkeimer?</summary><div><p>Lichtkeimer brauchen Licht zum Keimen. Du drückst die Samen nur an und bedeckst sie nicht mit Erde. Dunkelkeimer bedeckst du mit Erde, ungefähr zwei- bis dreimal so dick wie das Samenkorn.</p></div></details>
+      <details><summary>Wie wird «Ernte in ca. X Wochen» berechnet?</summary><div><p>Saatzeit nimmt das Datum deines Eintrags und rechnet die übliche Wachstumszeit der Pflanze dazu. Fällt das Ergebnis ausserhalb der Erntezeit, springt es zum nächsten Erntefenster. Ein Radieschen, das du im Spätherbst säst, wird darum erst im Frühling reif.</p></div></details>
+      <details><summary>Was sind gute und schlechte Nachbarn?</summary><div><p>Manche Pflanzen helfen sich gegenseitig, zum Beispiel halten Zwiebeln und Rüebli einander Schädlinge fern. Andere nehmen sich Nährstoffe weg oder fördern Krankheiten. Die Angaben findest du in jeder Pflanze ganz unten.</p></div></details>
+      <details><summary>Wo werden meine Daten gespeichert?</summary><div><p>In der iPhone-App und im Browser nur auf deinem Gerät. Saatzeit hat kein Konto und schickt deine Einträge nirgends hin. Nutzt du in der Web-App einen gemeinsamen Garten mit Gartencode, liegen die Einträge zusätzlich online, damit alle mit demselben Code sie sehen.</p></div></details>
+      <details><summary>Was passiert, wenn ich die App lösche?</summary><div><p>Dann sind auch deine Einträge auf dem Gerät weg. Lege vorher unter «Meine Pflanzen» mit «Sichern» eine Kopie ab.</p></div></details>
+      <details><summary>Wie nehme ich meine Einträge auf ein neues Handy mit?</summary><div><p>Auf dem alten Handy unter «Meine Pflanzen» auf «Sichern» tippen und die Datei in iCloud Drive ablegen. Auf dem neuen Handy auf «Wiederherstellen» tippen und die Datei auswählen.</p></div></details>
+      <details><summary>Warum bekomme ich keine Erinnerungen?</summary><div><p>Prüfe unter «Meine Pflanzen», ob die Erinnerungen eingeschaltet sind, und in den iPhone-Einstellungen unter Mitteilungen → Saatzeit, ob Mitteilungen erlaubt sind. Erinnerungen gibt es nur in der iPhone-App, nicht im Browser.</p></div></details>
+      <details><summary>Kann ich eigene Pflanzen hinzufügen?</summary><div><p>Noch nicht. Fehlt dir eine Pflanze, melde dich über die Adresse im Impressum.</p></div></details>
+    </div>
+  </div>
+
+  <!-- Impressum -->
+  <div class="view" data-view="impressum" hidden>
+    <section class="page-head">
+      <span class="label">Angaben zur App</span>
+      <h2 class="page-title">Impressum</h2>
+    </section>
+    <div class="prose">
+      <h3>Herausgeberin</h3>
+      <p>Aliesch Brönnimann<br>Schweiz</p>
+      <p>Kontakt: aliesch.broennimann@outlook.com</p>
+
+      <h3>Haftung</h3>
+      <p>Die Angaben in Saatzeit sind sorgfältig zusammengestellt, aber Richtwerte. Wetter, Lage und Boden können abweichen. Für Ernteausfälle oder Schäden wird keine Haftung übernommen. Bei Wildkräutern wie Bärlauch gilt: Nur sammeln und essen, was du sicher erkennst.</p>
+
+      <h3>Datenschutz</h3>
+      <p>Saatzeit speichert deine Einträge auf deinem Gerät. Es gibt kein Konto, kein Tracking und keine Werbung. Nur wenn du in der Web-App einen gemeinsamen Garten mit Gartencode nutzt, werden die Einträge dieses Gartens bei Supabase (Europa) gespeichert. Für die Schriften verbindet sich Saatzeit mit Google Fonts. Dabei wird deine IP-Adresse an Google übermittelt.</p>
+
+      <h3>Urheberrecht</h3>
+      <p>Texte, Pflanzendaten, Symbole und Gestaltung stammen aus Saatzeit. Die Bauernregeln sind überlieferte Volksweisheiten. Schriften: Bricolage Grotesque, Atkinson Hyperlegible und IBM Plex Mono, alle unter der SIL Open Font License.</p>
+
+      <p class="meta">Saatzeit, Version 1.0 (Test)</p>
+    </div>
+  </div>
 
   <footer>
-    Richtwerte für die Schweiz bzw. Mitteleuropa. Frostempfindliches erst nach den Eisheiligen (11.–15. Mai) ins Freie. Die Lage-Einstellung verschiebt Frühlingstermine nach hinten und Herbsttermine nach vorne, jeweils um etwa zwei Wochen pro Stufe. Alles, was du einträgst, bleibt auf deinem Gerät. Mit «Sichern» legst du eine Kopie in Dateien oder iCloud Drive ab. Für markierte Pflanzen (★) erinnert dich Saatzeit, kurz bevor die Zeit zum Säen oder Pflanzen abläuft.
+    Richtwerte für die Schweiz bzw. Mitteleuropa. Frostempfindliches erst nach den Eisheiligen (11.–15. Mai) ins Freie. Die Lage-Einstellung verschiebt Frühlingstermine nach hinten und Herbsttermine nach vorne, jeweils um etwa zwei Wochen pro Stufe. Mehr dazu unter <a href="#hilfe">Hilfe</a> und <a href="#faq">Fragen &amp; Antworten</a>.
   </footer>
 </div>
 
@@ -1001,7 +1228,265 @@ const REIF = {
   ringelblume:[55], kapuzinerkresse:[55,35], sonnenblume:[100], tagetes:[70,40]
 };
 
-const QUOTES = [
+/* Sprüche oben auf der Startseite. Monat 0 = ganzjährig.
+   Bauernregeln erscheinen in ihrem Monat, Inspirationen im eigenen und den beiden Nachbarmonaten. */
+const REGELN = [
+  [1, "Ist der Januar hell und weiss, wird der Sommer sicher heiss."],
+  [1, "Wächst das Gras im Januar, wächst es schlecht das ganze Jahr."],
+  [1, "Januar warm, dass Gott erbarm."],
+  [1, "Wenn's im Januar nicht wintern will, wintert's im März und April."],
+  [1, "Ist der Januar nicht nass, füllt sich des Winzers Fass."],
+  [1, "Wenn die Tage beginnen zu langen, kommt der Winter erst gegangen."],
+  [1, "Im Januar viel Regen, wenig Schnee, tut Bergen, Tälern und Bäumen weh."],
+  [1, "Januar muss vor Kälte knacken, wenn die Ernte gut soll sacken."],
+  [2, "Lichtmess im Klee, Ostern im Schnee."],
+  [2, "Ist's an Lichtmess hell und rein, wird ein langer Winter sein."],
+  [2, "Wenn's der Hornung gnädig macht, bringt der Lenz den Frost bei Nacht."],
+  [2, "Sonnt sich der Dachs in der Lichtmesswoch, geht er auf vier Wochen wieder ins Loch."],
+  [2, "Heftige Nordwinde im Februar vermelden ein fruchtbar Jahr."],
+  [2, "Wenn im Hornung die Mücken schwärmen, muss man im März die Ohren wärmen."],
+  [2, "Der Februar hat seine Mucken, baut von Eis oft feste Brucken."],
+  [3, "Märzenschnee tut Frucht und Weinstock weh."],
+  [3, "Säst du im März zu früh, ist's oft vergebne Müh."],
+  [3, "Märzenstaub bringt Gras und Laub."],
+  [3, "Donnert's im März, so friert's im Mai."],
+  [3, "Ist Gertrud sonnig, wird's dem Gärtner wonnig."],
+  [3, "Lässt der März sich trocken an, bringt er Brot für jedermann."],
+  [3, "Märzensonne, kurze Wonne."],
+  [4, "April, April, der macht, was er will."],
+  [4, "Aprilwetter und Kartenglück wechseln jeden Augenblick."],
+  [4, "Ist der April schön und rein, wird der Mai umso wilder sein."],
+  [4, "Wenn der April Spektakel macht, gibt's Heu und Korn in voller Pracht."],
+  [4, "Aprilschnee bringt Gras und Klee."],
+  [4, "Donnert's im April, so hat der Reif sein Ziel."],
+  [4, "Nasser April und windiger Mai bringen ein fruchtbar Jahr herbei."],
+  [4, "Ist der April zu schön, kann im Mai der Schnee noch wehn."],
+  [5, "Pankraz, Servaz, Bonifaz machen erst dem Sommer Platz."],
+  [5, "Vor Bonifaz kein Sommer, nach der Sophie kein Frost."],
+  [5, "Die kalte Sophie macht alles hie."],
+  [5, "Ist der Mai kühl und nass, füllt's dem Bauern Scheun' und Fass."],
+  [5, "Mairegen bringt Segen."],
+  [5, "Ein Bienenschwarm im Mai ist wert ein Fuder Heu."],
+  [5, "Mamertus, Pankratius, Servatius bringen oft Kälte und Verdruss."],
+  [6, "Wenn kalt und nass der Juni war, verdirbt er meist das ganze Jahr."],
+  [6, "Regnet's am Siebenschläfertag, es noch sieben Wochen regnen mag."],
+  [6, "Vor Johanni bitt um Regen, nachher kommt er ungelegen."],
+  [6, "Bis Johanni nicht vergessen, sieben Wochen Spargel essen."],
+  [6, "Juni trocken mehr als nass, füllt mit gutem Wein das Fass."],
+  [6, "Ist der Juni warm und nass, gibt's viel Korn und noch mehr Gras."],
+  [6, "Wie das Wetter am Siebenschläfer sich verhält, ist's sieben Wochen lang bestellt."],
+  [7, "Hundstage hell und klar zeigen an ein gutes Jahr."],
+  [7, "Im Juli muss vor Hitze braten, was im Herbst soll geraten."],
+  [7, "Wie das Wetter an Mariä Heimsuchung, so bleibt's vierzig Tage."],
+  [7, "Juli schön und klar gibt ein gutes Bauernjahr."],
+  [8, "Was der August nicht kocht, lässt der September ungebraten."],
+  [8, "Hitze an St. Dominikus, ein strenger Winter kommen muss."],
+  [8, "Laurentius heiter und gut, einen schönen Herbst verheissen tut."],
+  [8, "Wie sich's Wetter an Bartholomä hält, so ist's den ganzen Herbst bestellt."],
+  [8, "Nordwind im August bringt beständig Wetter mit."],
+  [9, "Septemberregen kommt dem Bauern gelegen."],
+  [9, "Ist der September lind, wird der Winter ein Kind."],
+  [9, "Ägidi hell und schön, lässt uns einen schönen Herbst sehn."],
+  [9, "Wie der Michaelitag, so der Herbst."],
+  [10, "Viel Nebel im Oktober, viel Schnee im Winter."],
+  [10, "Ist der Oktober warm und fein, kommt ein scharfer Winter drein."],
+  [10, "Fällt das Laub sehr schnell, ist der Winter bald zur Stell."],
+  [10, "Hält der Baum die Blätter lang, macht ein später Winter bang."],
+  [10, "Wenn's im Oktober friert und schneit, bringt der Jänner milde Zeit."],
+  [11, "Martini Sonnenschein, tritt ein kalter Winter ein."],
+  [11, "Wenn's an Martini trüb ist, wird der Winter gelind."],
+  [11, "Friert im November früh das Wasser, wird's im Januar umso nasser."],
+  [11, "Wenn der November blitzt und kracht, im nächsten Jahr der Bauer lacht."],
+  [11, "Hängt das Laub bis November hinein, wird der Winter lange sein."],
+  [12, "Kalter Dezember mit tüchtig Schnee gibt ein fruchtbar Jahr mit reichlich Klee."],
+  [12, "Grüne Weihnachten, weisse Ostern."],
+  [12, "Weihnacht im Klee, Ostern im Schnee."],
+  [12, "Ist es um Weihnacht feucht und nass, gibt es leere Speicher und leere Fass."],
+  [12, "Dezember kalt mit Schnee gibt Korn auf jeder Höh."],
+  [12, "Wie das Wetter vom Christtag bis Dreikönig ist, so wird's das ganze Jahr."],
+  [0, "Bohnen wollen die Glocken läuten hören."],
+  [0, "Wenn der Hahn kräht auf dem Mist, ändert sich das Wetter oder es bleibt, wie's ist."],
+  [0, "Abendrot, Gutwetterbot. Morgenrot mit Regen droht."],
+  [0, "Fliegen die Schwalben hoch, bleibt das Wetter schön. Fliegen sie tief, gibt es bald Regen."],
+  [0, "Hat der Mond einen Hof, gibt es bald Regen."],
+  [0, "Steigt der Rauch gerade in die Höh, bleibt das Wetter schön."],
+  [0, "Wenn die Frösche laut quaken, gibt es bald Regen."],
+  [0, "Wenn die Spinne fleissig webt, schönes Wetter man erlebt."],
+  [0, "Sind die Berge nah und klar, ist der Regen nicht mehr fern."],
+  [0, "Kräht der Hahn am Abend, kommt der Regen am Morgen."],
+  [0, "Wer im Frühjahr nicht sät, wird im Herbst nicht ernten."]
+];
+
+const IDEEN = [
+  [1, "Orangenmarmelade kochen: Bitterorangen gibt es jetzt auf dem Markt."],
+  [1, "Getrocknete Kräuter vom Sommer zu Kräutersalz mischen: 1 Teil Kräuter auf 4 Teile Meersalz."],
+  [1, "Ein Fensterbrett-Garten mit Kresse, Erbsensprossen und Schnittlauch bringt Grün in den Januar."],
+  [1, "Lauch aus dem Beet: Eine Lauchwähe mit Rahmguss wärmt an kalten Tagen."],
+  [1, "Federkohl-Chips: Blätter mit Öl und Salz bei 140 °C knusprig backen."],
+  [1, "Zeit für Pläne: Zeichne dein Beet und notiere, was wo wachsen soll."],
+  [1, "Holunderblütensirup vom Juni mit heissem Wasser aufgiessen: Sommer in der Tasse."],
+  [1, "Salzzitronen ansetzen: Bio-Zitronen vierteln, mit Salz ins Glas pressen und vier Wochen warten."],
+  [2, "Saatgut tauschen: Lade Freunde zu Tee und Samentüten ein."],
+  [2, "Pastinakensuppe mit etwas Muskat und gerösteten Haselnüssen."],
+  [2, "Bienenwachstücher selbst machen: Baumwollstoff mit geriebenem Wachs im Ofen tränken."],
+  [2, "Anzuchttöpfe aus Zeitungspapier falten, statt Plastik zu kaufen."],
+  [2, "Nüsslisalat mit Speck, Ei und Brotwürfeln: der Klassiker aus dem Winterbeet."],
+  [2, "Zitronen-Ingwer-Sirup: 1 Liter Wasser, 500 g Zucker, 2 Bio-Zitronen und ein Stück Ingwer."],
+  [2, "Rosenkohl halbieren und mit Honig und Senf im Ofen rösten."],
+  [2, "Sprossen im Glas ziehen: Linsen, Mungbohnen oder Rucola keimen in wenigen Tagen."],
+  [3, "Bärlauchpesto: 100 g Bärlauch, 50 g Parmesan, 50 g Pinienkerne und 1 dl Olivenöl."],
+  [3, "Bärlauchbutter auf Vorrat: in Rollen formen und einfrieren."],
+  [3, "Ostereier mit Zwiebelschalen und aufgelegten Kräuterblättchen natürlich färben."],
+  [3, "Weidenkätzchen und Forsythienzweige in der Vase holen den Frühling ins Haus."],
+  [3, "Kresse-Eier: Kresse in ausgeblasenen Eierschalen wachsen lassen."],
+  [3, "Spinat-Quiche mit den ersten zarten Blättern."],
+  [3, "Frühjahrsputz für die Werkzeuge: Spaten schärfen, Holzstiele ölen."],
+  [3, "Ein Gartenbuch beginnen: Fotos, Notizen und leere Saattüten einkleben."],
+  [3, "Tomaten-Anzucht als Familienprojekt: Jede Person darf eine Sorte aussuchen."],
+  [4, "Rhabarbersirup: Stücke mit Wasser aufkochen, absieben und mit Zucker einkochen."],
+  [4, "Löwenzahnhonig aus den Blüten: fein auf Brot und im Tee."],
+  [4, "Gänseblümchen und Veilchen kandieren: mit Eiweiss bepinseln und in Zucker wenden."],
+  [4, "Bärlauchsalz: Blätter mit grobem Salz mixen und an der Luft trocknen lassen."],
+  [4, "Brennnesseljauche ansetzen: natürlicher Dünger für Tomaten und Kohl."],
+  [4, "Bienenweide säen: Phacelia und Ringelblumen locken Bienen in den Garten."],
+  [4, "Frühlingskräuter-Quark mit Schnittlauch, Petersilie und Kerbel."],
+  [4, "Einen Kräutertopf für die Küche bepflanzen: Schnittlauch, Petersilie und Thymian."],
+  [5, "Waldmeistersirup ansetzen, solange der Waldmeister noch nicht blüht."],
+  [5, "Spargel mit Kerbelbutter: schnell gemacht und frühlingsfrisch."],
+  [5, "Rhabarber-Crumble mit Haferflocken und braunem Zucker."],
+  [5, "Kerbelsuppe: Den Kerbel erst ganz am Schluss in die Suppe geben."],
+  [5, "Radieschen-Quark: fein gehackt mit Schnittlauch auf frisches Brot."],
+  [5, "Radieschenblätter nicht wegwerfen: Sie ergeben ein feines Pesto."],
+  [5, "Geschenkidee: ein selbst bepflanzter Kräutertopf."],
+  [5, "Holunderblütensirup vorbereiten: Zucker, Zitronen und saubere Flaschen bereitstellen."],
+  [5, "Ein Insektenhotel bauen aus Bambus, Schilf und Holzklötzen mit Bohrlöchern."],
+  [6, "Holunderblütensirup: 20 Dolden, 2 Bio-Zitronen, 1 kg Zucker und 1 Liter Wasser drei Tage ziehen lassen."],
+  [6, "Holunderblüten im Bierteig ausbacken und mit Puderzucker bestreuen."],
+  [6, "Hollerchampagner ansetzen: Holunderblüten, Zitrone, Zucker, Wasser und etwas Geduld."],
+  [6, "Erdbeerkonfitüre mit einem Hauch Basilikum oder Minze."],
+  [6, "Erdbeer-Rhabarber-Konfitüre: 1 kg Früchte und 500 g Gelierzucker 2:1."],
+  [6, "Minzsirup: ein grosser Bund Minze, 1 Liter Wasser, 700 g Zucker und eine Zitrone."],
+  [6, "Melissensirup: erfrischend mit Mineralwasser und Eiswürfeln."],
+  [6, "Zucchetti-Carpaccio: hauchdünn hobeln, mit Zitrone, Olivenöl und Parmesan."],
+  [6, "Kefen kurz blanchieren und mit Sesamöl als Salat anrichten."],
+  [6, "Rosenblütengelee, wenn die duftenden Rosen blühen."],
+  [6, "Kräuterbüschel binden und kopfüber zum Trocknen aufhängen."],
+  [6, "Erdbeer-Tiramisu mit frischen Beeren aus dem Garten."],
+  [6, "Erdbeer-Minz-Wasser in einer grossen Karaffe für den Gartentag."],
+  [6, "Blütensalz mit Kornblumen und Ringelblumen: hübsch als kleines Geschenk."],
+  [6, "Erbsen-Minz-Suppe: frisch, grün und schnell gemacht."],
+  [7, "Gurken einlegen: mit Dill, Senfkörnern und Knoblauch im Essigsud."],
+  [7, "Pesto Genovese mit eigenem Basilikum, portionsweise im Eiswürfelbehälter einfrieren."],
+  [7, "Himbeersirup: Himbeeren mit Zucker aufkochen und durch ein Tuch passieren."],
+  [7, "Himbeerkonfitüre ohne Kerne: Die Früchte vorher durch ein Sieb streichen."],
+  [7, "Träublikuchen: Johannisbeeren mit Baiserhaube auf Mürbeteig."],
+  [7, "Johannisbeergelee: Saft mit Gelierzucker kochen, ein Klassiker zum Zmorge."],
+  [7, "Johannisbeersirup: Beeren mit Wasser kochen, absieben und mit Zucker einkochen."],
+  [7, "Lavendelzucker: Blüten mit Zucker im Glas zwei Wochen ziehen lassen."],
+  [7, "Kalter Minztee mit Zitrone und Honig für heisse Tage."],
+  [7, "Zu viele Zucchetti? Ein Zucchetti-Schokoladenkuchen verrät nichts davon."],
+  [7, "Stachelbeerkonfitüre mit einem Hauch Holunderblüte."],
+  [7, "Tomaten-Bruschetta mit eigenem Basilikum und Knoblauch."],
+  [7, "Kräuterbutter auf Vorrat herstellen und einfrieren."],
+  [7, "Ringelblumensalbe: Blüten in Öl ziehen lassen und mit Bienenwachs fest werden lassen."],
+  [7, "Lavendelsäckchen nähen für Schrank und Schublade."],
+  [7, "Kamillenblüten an einem sonnigen Morgen ernten und schattig trocknen."],
+  [7, "Kirschen einmachen oder einen Chriesitötsch backen."],
+  [7, "Basilikum-Limonade: Basilikum, Zitronen, Zucker und Sprudelwasser mixen."],
+  [7, "Heidelbeer-Muffins mit den ersten eigenen Beeren."],
+  [8, "Tomatensauce auf Vorrat: einkochen und heiss in saubere Gläser füllen."],
+  [8, "Ofentomaten mit Thymian und Knoblauch, im Kühlschrank in Öl eingelegt."],
+  [8, "Tomaten trocknen: halbiert bei 70 °C im Ofen über Nacht."],
+  [8, "Zucchetti-Relish süss-sauer, perfekt zum Grillieren."],
+  [8, "Peperoni füllen mit Couscous, Feta und frischen Kräutern."],
+  [8, "Ratatouille mit allem, was das Beet gerade hergibt."],
+  [8, "Bohnen süss-sauer einlegen: ein Vorrat für den Winter."],
+  [8, "Brombeerkonfitüre aus der Hecke oder dem Garten."],
+  [8, "Brombeersirup für Joghurt, Glace und Prosecco."],
+  [8, "Pfirsich-Lavendel-Konfitüre: eine überraschende Kombination."],
+  [8, "Mirabellenkonfitüre mit einer Vanilleschote."],
+  [8, "Gurkenwasser mit Minze und Zitrone gegen den Durst."],
+  [8, "Gurkensalat mit Dill und saurem Halbrahm."],
+  [8, "Salbeiblätter in Butter knusprig braten: zu Pasta oder Gnocchi."],
+  [8, "Basilikumsirup: grün, überraschend und fein im Sommerdrink."],
+  [8, "Chiliöl ansetzen: getrocknete Chilis mit heissem Öl übergiessen."],
+  [8, "Sommerstrauss aus Ringelblumen, Kornblumen und Kapuzinerkresse."],
+  [8, "Kapuzinerkresse-Blüten mit Frischkäse füllen: ein Apéro aus dem Garten."],
+  [8, "Sonnenblumen im Knospenstadium schneiden, dann halten sie in der Vase länger."],
+  [9, "Zwetschgenkonfitüre mit Zimt und einem Schuss Kirsch."],
+  [9, "Zwetschgenwähe nach Grossmutters Art."],
+  [9, "Apfelmus auf Vorrat einkochen."],
+  [9, "Holunderbeerensirup: Beeren nur gekocht verwenden, roh sind sie unbekömmlich."],
+  [9, "Brombeer-Holunder-Gelee für dunkle Wintermorgen."],
+  [9, "Apfel-Holunder-Gelee: fruchtig und tiefrot."],
+  [9, "Physalis in Schokolade tauchen: kleine Geschenke für Gäste."],
+  [9, "Peperoni-Chutney mit Zwiebeln und Rohzucker."],
+  [9, "Saatgut von Bohnen, Tomaten und Ringelblumen sammeln und trocknen."],
+  [9, "Erntedank-Tisch mit Kürbissen, Äpfeln und Ähren dekorieren."],
+  [9, "Birnen-Ingwer-Konfitüre: würzig und fein zu Käse."],
+  [9, "Rüeblitorte nach Aargauer Art mit eigenen Rüebli."],
+  [9, "Traubengelee aus Gartentrauben."],
+  [10, "Quittengelee: Quitten abreiben, kochen und den Saft mit Gelierzucker einkochen."],
+  [10, "Kürbiskerne rösten mit Salz, Paprika oder Curry."],
+  [10, "Hagebuttenmark für Tee und Konfitüre."],
+  [10, "Grüne Tomaten nicht wegwerfen: Grüne-Tomaten-Chutney mit Apfel und Ingwer."],
+  [10, "Kürbissuppe mit Ingwer und Kokosmilch."],
+  [10, "Kürbiskonfitüre mit Orange und Zimt."],
+  [10, "Kürbisrisotto mit knusprigem Salbei."],
+  [10, "Kürbisbrot: Kürbispüree macht den Teig saftig und goldgelb."],
+  [10, "Marroni rösten und Marronipüree für Vermicelles einfrieren."],
+  [10, "Apfelchips im Ofen bei 80 °C trocknen."],
+  [10, "Teemischungen aus den Sommerkräutern: Minze, Melisse und Goldmelisse."],
+  [10, "Randensalat mit Apfel und Meerrettich."],
+  [10, "Randenchips knusprig aus dem Ofen."],
+  [10, "Herbstkranz aus Hagebutten, Efeu und Hortensien binden."],
+  [10, "Kürbis-Chutney: passt zu Käse und Fleisch."],
+  [10, "Quittenlikör mit Zimt und Vanille ansetzen."],
+  [10, "Gschwellti mit Kräuterquark, um die Kartoffelernte zu feiern."],
+  [10, "Hortensien und Gräser trocknen für Herbststräusse."],
+  [11, "Räben schnitzen für den Räbeliechtliumzug."],
+  [11, "Quittenpästli: Quittenpaste in Würfel schneiden und in Zucker wenden."],
+  [11, "Glühweingewürz selbst mischen: Zimt, Nelken, Sternanis und Orangenschale."],
+  [11, "Rosmarinsalz und Thymiansalz als Weihnachtsgeschenk vorbereiten."],
+  [11, "Federkohl-Smoothie mit Apfel und Banane."],
+  [11, "Lauch-Kartoffel-Suppe mit gerösteten Brotwürfeln."],
+  [11, "Einen Kräuterlikör ansetzen, damit er bis Weihnachten durchgezogen ist."],
+  [11, "Pastinaken und Rüebli im Ofen mit Honig und Thymian."],
+  [11, "Zuckerhutsalat mit Orangen und Baumnüssen."],
+  [11, "Apfel-Zimt-Konfitüre für die Adventszeit."],
+  [11, "Eigene Etiketten für die Gläser: Name, Datum und eine kleine Zeichnung."],
+  [11, "Meisenknödel aus Fett und Körnern für die Gartenvögel."],
+  [11, "Laub nicht wegwerfen: unter Sträuchern als Mulch oder als Igel-Unterschlupf aufschichten."],
+  [11, "Sauerkraut selbst machen: Kabis fein hobeln, salzen und fest ins Gefäss stampfen."],
+  [11, "Marronikuchen für gemütliche Abende."],
+  [11, "Amaryllis-Zwiebel im schönen Topf: ein Geschenk, das noch wächst."],
+  [12, "Geschenke aus dem Garten: Konfitüre, Sirup und Kräutersalz in schönen Gläsern."],
+  [12, "Zimtsterne mit einem Hauch Orangenzeste."],
+  [12, "Gewürzsirup mit Zimt, Sternanis und Orange für Punsch."],
+  [12, "Glühmost mit Apfelsaft, Zimt und Nelken."],
+  [12, "Adventskranz aus Tannenzweigen, Hagebutten und getrockneten Orangenscheiben."],
+  [12, "Orangenscheiben als Baumschmuck: bei 80 °C im Ofen trocknen."],
+  [12, "Mandarinenkonfitüre mit Vanille."],
+  [12, "Rosenkohl mit Speck und Marroni zum Festessen."],
+  [12, "Barbarazweige am 4. Dezember ins Wasser stellen, dann blühen sie zu Weihnachten."],
+  [12, "Orangen mit Nelken spicken: duftet tagelang im ganzen Haus."],
+  [12, "Kräutersalz in kleine Gläser füllen: ein Geschenk, das nach Sommer riecht."],
+  [12, "Ein Lebkuchenhaus mit getrockneten Fruchtscheiben verzieren."],
+  [0, "Ein Rezeptheft anlegen: Notiere, welche Konfitüre dieses Jahr am besten gelungen ist."],
+  [0, "Schraubgläser mit intaktem Deckel sammeln: beim Einmachen sind sie Gold wert."],
+  [0, "Konfitüre-Tipp: Ein Tropfen auf einem kalten Teller zeigt, ob sie fest wird."],
+  [0, "Sirup hält länger, wenn du ihn heiss in saubere Flaschen füllst und sofort verschliesst."],
+  [0, "Gläser vor dem Einfüllen im Ofen bei 120 °C sterilisieren."],
+  [0, "Etiketten nicht vergessen: Was ist drin, und wann wurde es gemacht?"],
+  [0, "Etwas Zitronensaft hilft Konfitüren, schön zu gelieren und frisch zu schmecken."],
+  [0, "Weniger Zucker? Gelierzucker 3:1 lässt mehr Fruchtgeschmack übrig."],
+  [0, "Kräuteressig: Estragon, Thymian oder Rosmarin in hellen Essig legen."],
+  [0, "Teemischung «Gartenglück»: Minze, Zitronenmelisse und ein paar Ringelblumenblüten."],
+  [0, "Kräutertee aus dem eigenen Garten schmeckt frisch aufgegossen am besten."],
+  [0, "Eine Kiste für Gartenschätze: Samen, Etiketten, Bast und Gartenschere an einem Ort."]
+];
+
+const SPRUECHE = [
   "Ein Garten wird nie fertig. Er wird nur jedes Jahr ein bisschen schöner.",
   "Geduld ist der wichtigste Dünger.",
   "Jede Handvoll Erde ist ein kleines Versprechen.",
@@ -1026,11 +1511,132 @@ const QUOTES = [
   "Auch im Winter wächst etwas: die Vorfreude.",
   "Ein Samenkorn weiss genau, was es zu tun hat. Hilf ihm einfach ein bisschen.",
   "Nicht jedes Jahr ist ein Tomatenjahr. Aber jedes Jahr ist ein Gartenjahr.",
-  "Bauernregel: Pankraz, Servaz, Bonifaz machen erst dem Sommer Platz.",
-  "Bauernregel: Ist der Mai kühl und nass, füllt's dem Bauern Scheun' und Fass.",
-  "Bauernregel: Säst du im März zu früh, ist's oft vergebne Müh.",
-  "Bauernregel: Bohnen wollen die Glocken läuten hören.",
-  "Bauernregel: Wenn der Hahn kräht auf dem Mist, ändert sich das Wetter oder es bleibt, wie's ist."
+  "Wer Tomaten zieht, lernt Geduld. Wer sie erntet, lernt Dankbarkeit.",
+  "Der Garten verzeiht viel. Nur das Vergessen nicht.",
+  "Ein Beet ist eine Leinwand, die jedes Jahr neu bemalt wird.",
+  "Die schönsten Pläne entstehen mit Erde unter den Fingernägeln.",
+  "Gärtnern heisst: heute etwas tun, worüber du dich in drei Monaten freust.",
+  "Eine Gurke vom eigenen Beet schmeckt nach Stolz.",
+  "Wer Kräuter hat, kocht nie ganz allein.",
+  "Langsam wachsen ist auch wachsen.",
+  "Der Garten fragt nicht nach dem Kalender, sondern nach dem Wetter.",
+  "Regen ist für den Garten, was Ferien für dich sind.",
+  "Ein Kürbis braucht Platz. Gute Ideen auch.",
+  "Unkraut ist nur eine Pflanze am falschen Ort.",
+  "Wer sät, hofft. Wer giesst, glaubt. Wer erntet, feiert.",
+  "Erde an den Händen ist die schönste Art, schmutzig zu sein.",
+  "Ein Garten braucht keinen Perfektionismus, nur Aufmerksamkeit.",
+  "Die Natur macht keinen Feierabend, aber sie macht Pausen.",
+  "Auch der kleinste Balkon kann eine Ernte tragen.",
+  "Was im Frühling keimt, erzählt im Herbst seine Geschichte.",
+  "Ein volles Vorratsregal ist ein stiller Applaus für den Sommer.",
+  "Sonnenblumen erinnern daran, dass man sich nach dem Licht drehen darf.",
+  "Im Garten gibt es keine verlorenen Tage, nur gelernte.",
+  "Jede Saison hat ihre Arbeit und ihre Freude.",
+  "Ein Haus voller Gläser mit Konfitüre ist ein reiches Haus.",
+  "Das Beste am Gärtnern: Man muss nicht alles können. Die Pflanzen helfen mit.",
+  "Mulch ist die Bettdecke des Bodens.",
+  "Wer Bienen füttert, erntet mehr als Honig.",
+  "Gute Nachbarn im Beet sind wie gute Nachbarn im Leben: Sie machen alles leichter.",
+  "Die Schnecke ist auch nur ein Gast. Ein sehr hungriger.",
+  "Ein Gartentag ist nie ganz zu Ende. Er geht nur in die Nacht über.",
+  "Was du mit Freude säst, wächst mit Freude.",
+  "Eine einzige Tomatenpflanze kann einen ganzen Sommer verändern.",
+  "Wer Samen sammelt, sammelt Zukunft.",
+  "Die Erde ist geduldig. Sei es auch.",
+  "Am Ende zählt nicht die Grösse des Gartens, sondern die Zeit darin.",
+  "Ein Garten ist ein Gespräch zwischen dir und der Natur.",
+  "Wer genau hinschaut, sieht jeden Tag etwas Neues wachsen.",
+  "Basilikum riecht nach Ferien, auch zu Hause.",
+  "Ein Kräuterbeet vor der Küche spart den Weg zum Laden.",
+  "Pflanzen hören nicht zu, aber sie antworten.",
+  "Gärtnern ist die schönste Ausrede, um draussen zu sein.",
+  "Jede Ernte beginnt mit einem Loch in der Erde.",
+  "Wer im Herbst Zwiebeln steckt, hat im Frühling Gesellschaft.",
+  "Lass etwas Wildes stehen. Die Igel danken es dir.",
+  "Ein bisschen Unordnung im Garten ist ein Zuhause für viele.",
+  "Gute Erde riecht nach Wald und Regen.",
+  "Selbst gemachter Sirup schmeckt nach dem Tag, an dem du ihn gemacht hast.",
+  "Konfitüre ist eingemachter Sonnenschein.",
+  "Ein Glas Holundersirup im Winter ist ein Brief vom Juni.",
+  "Was du einmachst, machst du doppelt wertvoll.",
+  "Ein Strauss aus dem eigenen Garten ist das schönste Geschenk.",
+  "Zu Hause ist dort, wo die Kräuter auf dem Fensterbrett stehen.",
+  "Ein Garten macht aus Zeit etwas, das man essen kann.",
+  "Hab Mut zu neuen Sorten. Der Garten ist ein Versuchslabor.",
+  "Nicht jede Saat geht auf. Aber jede lehrt etwas.",
+  "Ein sauberer Spaten ist ein halber Arbeitstag.",
+  "Ruhe ist auch Pflege, für den Boden und für dich.",
+  "Wer mit der Natur arbeitet, muss nicht gegen sie kämpfen.",
+  "Der Frühling kommt jedes Jahr. Bereit sein musst nur du.",
+  "Ein kleiner Garten ist ein grosser Lehrer.",
+  "Die Hände in der Erde, den Kopf im Himmel.",
+  "Kein Weg ist zu kurz für einen Abstecher ins Beet.",
+  "Ein Gartenjahr hat vier Kapitel. Jedes ist lesenswert.",
+  "Was gestern ein Samen war, ist heute ein Versprechen und morgen ein Abendessen.",
+  "Wer giesst, wenn es heiss ist, ist ein guter Freund der Pflanzen.",
+  "Pflanzen wachsen nicht schneller, wenn man daran zieht.",
+  "Der schönste Stuhl im Haus steht im Garten.",
+  "Ein Becher Tee im Garten ist eine kleine Ferienreise.",
+  "Gärtnern ist Hoffnung mit Handschuhen.",
+  "Wer die Jahreszeiten kennt, ist nie zu spät.",
+  "Ein Hochbeet ist ein Garten auf Augenhöhe.",
+  "Wer heute aufräumt, findet morgen alles.",
+  "Ein frisch bezogenes Bett und ein frisch gejätetes Beet: doppeltes Glück.",
+  "Das Haus atmet auf, wenn die Fenster offen sind und es draussen blüht.",
+  "Kleine Rituale machen ein Haus warm: eine Kerze, ein Tee, ein Blick in den Garten.",
+  "Ein Zuhause wird nie fertig. Genau wie ein Garten.",
+  "Wer teilt, hat doppelt geerntet.",
+  "Zucchetti teilen ist eine Form von Freundschaft.",
+  "Ein Garten ohne Blumen ist wie ein Lied ohne Melodie.",
+  "Gemüse aus dem eigenen Garten braucht keine Verpackung.",
+  "Die Jahreszeiten sind der beste Menüplan.",
+  "Iss, was gerade wächst. Es schmeckt am besten.",
+  "Ein Korb voller Ernte ist die schönste Einkaufstasche.",
+  "Pflanzen brauchen Zeit. Menschen auch.",
+  "Wer den Boden pflegt, pflegt die Zukunft.",
+  "Ein Regentag ist ein Gartentag, an dem die Natur giesst.",
+  "Ein Fensterbrett voller Setzlinge ist der Frühling im Wartezimmer.",
+  "Wer im Januar plant, erntet im August.",
+  "Der Garten ist ein Ort, an dem man nichts muss und doch viel kann.",
+  "Freu dich an dem, was wächst, nicht an dem, was fehlt.",
+  "Wer pflanzt, pflanzt auch für andere.",
+  "Ein Garten ist nie leise. Man muss nur zuhören.",
+  "Morgens im Garten ist die Welt noch in Ordnung.",
+  "Ein Haus mit Garten hat ein Zimmer mehr.",
+  "Nicht der grüne Daumen macht die Gärtnerin, sondern die Neugier.",
+  "Was dir der Garten heute an Zeit nimmt, gibt er dir morgen zurück.",
+  "Wer Blumen pflanzt, schenkt der ganzen Strasse etwas.",
+  "Ein vergessener Kürbis ist die schönste Überraschung im Herbst.",
+  "Kräuter trocknen heisst, den Sommer in Gläser packen.",
+  "Wer einmal selbst gezogene Rüebli gegessen hat, kauft sie nie mehr ganz gern.",
+  "Die Ernte ist der Dank des Gartens für deine Geduld.",
+  "Im Garten ist jeder Tag ein Neuanfang.",
+  "Ein offenes Fenster, frische Luft, ein Strauss Kräuter: Mehr Wellness braucht kein Haus.",
+  "Säen ist ein Akt des Vertrauens.",
+  "Ein Garten ist der langsamste Weg zum Glück, aber ein sicherer.",
+  "Grün beruhigt, Rot macht hungrig: Willkommen im Gemüsegarten.",
+  "Lass den Löwenzahn stehen. Die Bienen frühstücken gern.",
+  "Der beste Dünger ist der Schatten der Gärtnerin.",
+  "Was lange wächst, wird endlich gut.",
+  "Es gibt kein schlechtes Wetter, nur falsche Kleidung. Und gute Gummistiefel.",
+  "Ein Sonnenhut ist das wichtigste Gartenwerkzeug.",
+  "Auch Pausen gehören zum Gartenplan.",
+  "Jede Pflanze hat ihre Zeit. Du auch.",
+  "Der Garten belohnt alle, die wiederkommen.",
+  "Ein Kompost ist die Küche des Bodens.",
+  "Wer lacht, wenn die Schnecken den Salat holen, hat das Gärtnern verstanden.",
+  "Ein Garten ist eine Einladung, die jedes Jahr neu verschickt wird.",
+  "Ein voller Keller ist ein ruhiger Winter.",
+  "Wer Sirup kocht, macht Sommerferien in Flaschen.",
+  "Ein Haus voller Duft nach Konfitüre braucht keine Duftkerzen.",
+  "Zwischen Saat und Ernte liegt das schönste Warten.",
+  "Am Ende jedes Gartentags steht ein zufriedenes Seufzen.",
+  "Ein Garten wächst mit dir.",
+  "Einmachgläser leeren sich am schnellsten, wenn man sie verschenkt.",
+  "Ein Löffel Konfitüre am Morgen ist ein kleiner Gruss vom letzten Sommer.",
+  "Das Schönste an einem Sirup ist der Moment, in dem du ihn verschenkst.",
+  "Ein Garten bringt dich jeden Tag ein bisschen näher zu dir selbst."
 ];
 
 const EVENTS = [
@@ -1246,8 +1852,28 @@ function heroTasks() {
   return { pick, total };
 }
 
-let quoteIdx = Math.floor(Math.random() * QUOTES.length);
-function renderQuote() { document.getElementById("quote").textContent = "«" + QUOTES[quoteIdx] + "»"; }
+// Erst die Art zufällig wählen, dann einen Eintrag daraus. So kommen Bauernregeln und Ideen der Saison
+// regelmässig vor, obwohl es mehr Gartensprüche gibt.
+function quotePools() {
+  const cm = now.getMonth() + 1;
+  const near = m => m === 0 || m === cm || m === cm % 12 + 1 || m === (cm + 10) % 12 + 1;
+  return [
+    { w: .3, items: REGELN.filter(([m]) => m === 0 || m === cm).map(([m, t]) => ({ kind: m ? `Bauernregel · ${MONTHS[m - 1]}` : "Bauernregel", t })) },
+    { w: .35, items: IDEEN.filter(([m]) => near(m)).map(([, t]) => ({ kind: "Inspiration", t })) },
+    { w: .35, items: SPRUECHE.map(t => ({ kind: "Gartenspruch", t })) }
+  ].filter(p => p.items.length);
+}
+let lastQuote = "";
+function renderQuote() {
+  const pools = quotePools(), sum = pools.reduce((s, p) => s + p.w, 0);
+  let r = Math.random() * sum, pool = pools[pools.length - 1];
+  for (const p of pools) { if ((r -= p.w) < 0) { pool = p; break; } }
+  let q;
+  do { q = pool.items[Math.floor(Math.random() * pool.items.length)]; } while (pool.items.length > 1 && q.t === lastQuote);
+  lastQuote = q.t;
+  document.getElementById("qkind").textContent = q.kind;
+  document.getElementById("quote").textContent = "«" + q.t + "»";
+}
 
 function renderHero() {
   const t = new Date(), season = SEASONS[seasonKey(t.getMonth() + 1)];
@@ -1279,7 +1905,7 @@ function renderHero() {
     ripeBox.innerHTML = `<span class="label">Bei dir erntereif</span><div class="chips">${ripe.map(({ e, g }) => {
       const p = plantById(e.pflanze);
       return `<button class="chip" data-id="${p.id}">${esc(p.n)} <span class="meta">bis ${dateLong(g.end)}</span></button>`;
-    }).join("")}</div>`;
+    }).join("")}</div><a class="more" href="#garten">Alle meine Pflanzen</a>`;
     ripeBox.hidden = false;
   } else {
     const next = prog.filter(x => x.g.status === "wachsend").sort((a, b) => a.g.ready - b.g.ready)[0];
@@ -1294,13 +1920,31 @@ function renderHero() {
 }
 
 /* ---------- Mein Garten: Pflanzungen speichern ----------
-   Rein lokal auf dem Gerät. Sicherung und Wiederherstellung über eine JSON-Datei. */
+   Dieselbe Datei läuft an drei Orten und wählt den Speicher selbst:
+   - "local":  iPhone-App und Browser, nur auf dem Gerät (Standard)
+   - "cloud":  Web-App mit config.js, gemeinsamer Garten über Gartencode (Supabase)
+   - "claude": Claude-Version, Datenbank der Seite (Capability "db")
+   Sicherung und Wiederherstellung funktionieren überall über eine JSON-Datei. */
 const ART = {
   v: { label: "Drinnen vorgezogen", cls: "vor" },
   d: { label: "Direkt gesät", cls: "saat" },
   p: { label: "Ausgepflanzt / gesetzt", cls: "pfl" }
 };
-const garden = { entries: [] };
+const garden = { entries: [], mode: "local", code: store.get("saatzeit.garten", ""), col: null };
+const CFG = window.SAATZEIT_CONFIG || {};
+const cloudReady = () => /^https:\/\/.+/.test(CFG.supabaseUrl || "") && !!CFG.supabaseKey;
+
+// Aufruf einer Datenbankfunktion (RPC). Direkter Tabellenzugriff ist in Supabase gesperrt.
+async function rpc(fn, args) {
+  const res = await fetch(`${CFG.supabaseUrl.replace(/\/$/, "")}/rest/v1/rpc/${fn}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", apikey: CFG.supabaseKey, Authorization: `Bearer ${CFG.supabaseKey}` },
+    body: JSON.stringify(args)
+  });
+  if (!res.ok) throw new Error(`${res.status} ${await res.text()}`);
+  const txt = await res.text();
+  return txt ? JSON.parse(txt) : null;
+}
 const entriesFor = id => garden.entries.filter(e => e.pflanze === id);
 const plantById = id => PLANTS.find(x => x.id === id);
 const todayISO = () => {
@@ -1312,13 +1956,22 @@ const setStatus = t => { document.getElementById("gstatus").textContent = t; };
 function loadLocal() { garden.entries = store.get("saatzeit.pflanzungen", []); }
 function saveLocal() { store.set("saatzeit.pflanzungen", garden.entries); }
 
-async function addEntry(entry) {
-  const id = Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
-  garden.entries.push({ id, ...entry }); saveLocal(); gardenChanged();
+const newId = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+
+// Speichert einen Eintrag im aktiven Speicher. "render: false" für Sammelimporte.
+async function addEntry(entry, id = newId(), render = true) {
+  if (garden.mode === "claude") { await garden.col.doc(id).set(entry); return; } // onSnapshot rendert neu
+  if (garden.mode === "cloud") await rpc("saatzeit_neu", { p_garten: garden.code, p_eintrag: { id, ...entry } });
+  garden.entries.push({ id, ...entry });
+  if (garden.mode === "local") saveLocal();
+  if (render) gardenChanged();
 }
 async function deleteEntry(id) {
+  if (garden.mode === "claude") { await garden.col.doc(id).delete(); return; }
+  if (garden.mode === "cloud") await rpc("saatzeit_loeschen", { p_garten: garden.code, p_id: id });
   garden.entries = garden.entries.filter(e => e.id !== id);
-  saveLocal(); gardenChanged();
+  if (garden.mode === "local") saveLocal();
+  gardenChanged();
 }
 
 // Erntefenster einer Pflanze als echte Datumsbereiche über mehrere Jahre, Jahreswechsel zusammengefügt.
@@ -1369,21 +2022,50 @@ function entryLine(e, withPlant) {
   const meta = [e.ort, e.menge, e.notiz].filter(Boolean).map(esc).join(" · ");
   return { p, a, ernte, meta };
 }
+function entryHTML(e, g) {
+  const { p, a, meta } = entryLine(e);
+  return `<div class="entry">
+    ${p ? icon(p, "lg") : ""}
+    <div class="what">
+      <button class="link" data-id="${esc(e.pflanze)}">${esc(p ? p.n : e.pflanze)}</button>
+      <span class="pill ${a.cls}">${a.label}</span>
+      <span class="meta"><time datetime="${esc(e.datum)}">${fmtDate(e.datum)}</time>${meta ? " · " + meta : ""}</span>
+      ${progHTML(g)}
+    </div>
+    <button class="btn x" data-del="${esc(e.id)}">Löschen</button>
+  </div>`;
+}
+
+// "Meine Pflanzen": Kennzahlen, dann gruppiert nach erntereif, wachsend und vorbei
 function renderGarden() {
-  const list = [...garden.entries].sort((x, y) => (y.datum || "").localeCompare(x.datum || ""));
-  document.getElementById("entries").innerHTML = list.length ? list.map(e => {
-    const { p, a, ernte, meta } = entryLine(e);
-    return `<div class="entry">
-      <time datetime="${esc(e.datum)}">${fmtDate(e.datum)}</time>
-      <div class="what">
-        <button class="link" data-id="${esc(e.pflanze)}">${esc(p ? p.n : e.pflanze)}</button>
-        <span class="pill ${a.cls}">${a.label}</span>
-        ${meta ? `<span class="meta">${meta}</span>` : ""}
-        ${progHTML(growth(e))}
-      </div>
-      <button class="btn x" data-del="${esc(e.id)}">Löschen</button>
+  const all = garden.entries.map(e => ({ e, g: growth(e) }));
+  const byDate = (x, y) => (y.e.datum || "").localeCompare(x.e.datum || "");
+  const reif = all.filter(x => x.g && x.g.status === "reif").sort((x, y) => x.g.end - y.g.end);
+  const wachsend = all.filter(x => !x.g || x.g.status === "wachsend").sort((x, y) => (x.g ? x.g.ready : Infinity) - (y.g ? y.g.ready : Infinity));
+  const vorbei = all.filter(x => x.g && x.g.status === "vorbei").sort(byDate);
+  const kinds = new Set(garden.entries.map(e => e.pflanze)).size;
+
+  document.getElementById("gstats").innerHTML = all.length ? [
+    ["reif", reif.length, "erntereif"],
+    ["wachsend", wachsend.length, "wachsen noch"],
+    ["", kinds, kinds === 1 ? "Pflanzenart" : "Pflanzenarten"]
+  ].map(([cls, n, label]) => `<div class="stat ${cls}"><b>${n}</b><span class="meta">${label}</span></div>`).join("") : "";
+
+  const list = items => `<div class="entries">${items.map(x => entryHTML(x.e, x.g)).join("")}</div>`;
+  document.getElementById("entries").innerHTML = all.length ? [
+    reif.length ? `<section class="egroup"><h3>Jetzt erntereif <span class="count">${reif.length}</span></h3>${list(reif)}</section>` : "",
+    wachsend.length ? `<section class="egroup"><h3>Wächst noch <span class="count">${wachsend.length}</span></h3>${list(wachsend)}</section>` : "",
+    vorbei.length ? `<details class="egroup"><summary>Erntezeit vorbei <span class="count">${vorbei.length}</span></summary>${list(vorbei)}</details>` : ""
+  ].join("") : `<div class="empty-garden">
+      <h3>Noch nichts angepflanzt</h3>
+      <p>Öffne eine Pflanze und trage unter «Angepflanzt» ein, was du gesät oder gesetzt hast. Hier siehst du dann, wann es erntereif ist.</p>
+      <a class="btn primary" href="#h-all">Zu allen Pflanzen</a>
     </div>`;
-  }).join("") : `<div class="none">Noch nichts eingetragen. Öffne eine Pflanze und trage unter «Angepflanzt» ein, was du gesät oder gesetzt hast.</div>`;
+
+  const favs = PLANTS.filter(p => state.favs.has(p.id));
+  document.getElementById("favlist").innerHTML = favs.length
+    ? `<div class="chips">${favs.map(p => `<button class="chip" data-id="${p.id}">${esc(p.n)}</button>`).join("")}</div>`
+    : `<p class="meta">Noch keine Pflanze markiert. Tippe in der Pflanzenliste auf ★, dann erscheint sie hier.</p>`;
 }
 function renderHistory() {
   const box = document.getElementById("d-hist");
@@ -1394,15 +2076,120 @@ function renderHistory() {
     return `<li><span class="pill ${a.cls}">${a.label}</span><span>${fmtDate(e.datum)}</span>${meta ? `<span class="meta">${meta}</span>` : ""}<button class="btn x" data-del="${esc(e.id)}">Löschen</button>${progHTML(growth(e))}</li>`;
   }).join("")}</ul>` : `<p class="empty">Noch keine Einträge für diese Pflanze.</p>`;
 }
-function gardenChanged() { renderGarden(); renderList(); renderHistory(); renderHero(); localStatus(); queueReminders(); }
+function gardenChanged() { renderGarden(); renderList(); renderHistory(); renderHero(); gardenStatus(); queueReminders(); }
 
 const countText = n => `${n} ${n === 1 ? "Eintrag" : "Einträge"}`;
-function localStatus() { setStatus(`${countText(garden.entries.length)}, gespeichert auf ${Native ? "diesem iPhone" : "diesem Gerät"}.`); }
+function gardenStatus() {
+  const n = countText(garden.entries.length);
+  setStatus(garden.mode === "cloud" ? `${n} im gemeinsamen Garten «${garden.code}».`
+    : garden.mode === "claude" ? `${n}, gespeichert in der Datenbank dieser Seite.`
+    : `${n}, gespeichert auf ${Native ? "diesem iPhone" : "diesem Gerät"}.`);
+}
 const gmsg = t => { document.getElementById("gmsg").textContent = t; };
 
-function initGarden() {
-  loadLocal(); gardenChanged();
+// Gemeinsamer Garten: Einträge vom Server holen (beim Start, beim Zurückkehren und alle 60 s)
+let syncing = false;
+async function syncGarden() {
+  if (garden.mode !== "cloud" || syncing) return;
+  syncing = true;
+  try {
+    const rows = await rpc("saatzeit_liste", { p_garten: garden.code });
+    garden.entries = (rows || []).map(r => ({ id: r.id, pflanze: r.pflanze, art: r.art, datum: r.datum, ort: r.ort || "", menge: r.menge || "", notiz: r.notiz || "", erstellt: r.erstellt }));
+    gardenChanged();
+  } catch (e) {
+    setStatus("Keine Verbindung zum Garten. Angezeigt wird der letzte Stand.");
+  } finally { syncing = false; }
 }
+
+// Claude-Version: Datenbank der Seite, live über onSnapshot
+async function initClaudeDb() {
+  let db = null;
+  try { db = window.claude && window.claude.use ? await window.claude.use("db") : null; } catch (e) { db = null; }
+  if (!db) return;
+  const col = db.collection("pflanzungen");
+  const timer = setTimeout(() => setStatus("Datenbank noch nicht erreichbar. Einträge sind eventuell nicht aktuell."), 10000);
+  col.onSnapshot(snap => {
+    if (!snap.metadata.fromCache) clearTimeout(timer);
+    garden.mode = "claude"; garden.col = col;
+    garden.entries = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    gardenChanged();
+  }, () => {
+    clearTimeout(timer);
+    garden.mode = "local"; garden.col = null; loadLocal(); gardenChanged();
+    setStatus("Datenbank nicht verfügbar. Neue Einträge werden nur in diesem Browser gespeichert.");
+  });
+}
+
+async function initGarden() {
+  renderGcode();
+  if (cloudReady() && garden.code) {
+    garden.mode = "cloud";
+    setStatus("Lade Einträge …");
+    await syncGarden();
+    setInterval(syncGarden, 60000);
+    document.addEventListener("visibilitychange", () => { if (!document.hidden) syncGarden(); });
+    return;
+  }
+  loadLocal(); gardenChanged();
+  if (!cloudReady() && !Native) initClaudeDb();
+}
+
+/* ---------- Gemeinsamer Garten per Gartencode (nur Web-App mit config.js) ---------- */
+function renderGcode() {
+  const sec = document.getElementById("gcode-sec");
+  sec.hidden = !cloudReady();
+  if (sec.hidden) return;
+  document.getElementById("gcode-current").innerHTML = garden.code
+    ? `<span>Verbunden mit</span><code>${esc(garden.code)}</code><button class="btn" type="button" id="gcode-copy">Kopieren</button><button class="btn" type="button" id="gcode-leave">Trennen</button>`
+    : `<p class="meta">Noch kein Garten verbunden. Erstelle einen neuen Garten und schick den Code an deine Mitgärtnerin, oder gib einen Code ein, den du bekommen hast.</p>`;
+}
+async function connectGarden(code) {
+  garden.code = code; store.set("saatzeit.garten", code);
+  garden.mode = code ? "cloud" : "local";
+  garden.entries = [];
+  if (!code) loadLocal();
+  renderGcode(); gardenChanged();
+  await syncGarden();
+}
+// Gartencode: drei Pflanzennamen und eine Zahl, gut zu tippen und schwer zu erraten
+function newCode() {
+  const words = PLANTS.map(p => p.id).filter(id => id.length <= 10);
+  const rnd = n => { const a = new Uint32Array(1); crypto.getRandomValues(a); return a[0] % n; };
+  return [0, 1, 2].map(() => words[rnd(words.length)]).join("-") + "-" + String(1000 + rnd(9000));
+}
+const normCode = s => s.trim().toLowerCase().replace(/\s+/g, "-");
+document.getElementById("gcode-form").addEventListener("submit", async e => {
+  e.preventDefault();
+  const msg = document.getElementById("gcode-msg"), code = normCode(document.getElementById("gcode-input").value);
+  if (code.length < 12) { msg.textContent = "Der Code ist zu kurz. Er hat mindestens 12 Zeichen."; return; }
+  msg.textContent = "Verbinde …";
+  await connectGarden(code);
+  msg.textContent = "Verbunden.";
+  document.getElementById("gcode-input").value = "";
+});
+document.getElementById("gcode-new").addEventListener("click", async () => {
+  const msg = document.getElementById("gcode-msg");
+  const local = store.get("saatzeit.pflanzungen", []); // Einträge vom Gerät in den neuen Garten mitnehmen
+  const code = newCode();
+  await connectGarden(code);
+  let moved = 0;
+  for (const en of local) {
+    const { id, ...rest } = en;
+    try { await addEntry(rest, id, false); moved++; } catch (err) {}
+  }
+  if (moved) { store.set("saatzeit.pflanzungen", []); await syncGarden(); }
+  msg.textContent = `Neuer Garten erstellt${moved ? `, ${countText(moved)} übernommen` : ""}. Schick den Code an deine Mitgärtnerin.`;
+});
+document.getElementById("gcode-sec").addEventListener("click", async e => {
+  if (e.target.id === "gcode-copy") {
+    try { await navigator.clipboard.writeText(garden.code); e.target.textContent = "Kopiert"; }
+    catch (err) { e.target.textContent = "Bitte von Hand kopieren"; }
+  }
+  if (e.target.id === "gcode-leave") {
+    if (!e.target.dataset.confirm) { e.target.dataset.confirm = "1"; e.target.textContent = "Wirklich trennen?"; return; }
+    await connectGarden("");
+  }
+});
 
 /* ---------- Erinnerungen (lokale Mitteilungen, nur in der iPhone-App) ---------- */
 let remindTimer = null;
@@ -1454,8 +2241,8 @@ async function scheduleReminders() {
 
 function renderRemindBtn() {
   const b = document.getElementById("remind");
-  if (!Native) { b.hidden = true; return; }
-  b.hidden = false;
+  document.getElementById("remind-sec").hidden = !Native;
+  if (!Native) return;
   b.setAttribute("aria-pressed", String(state.remind));
   b.textContent = state.remind ? "Erinnerungen: an" : "Erinnerungen: aus";
 }
@@ -1486,6 +2273,13 @@ async function exportJSON() {
     await Native.Share.share({ title: "Saatzeit-Sicherung", files: [r.uri] });
     return;
   }
+  // Claude-Version: Downloads laufen nur über die Capability "downloads"
+  let dl = null;
+  try { dl = window.claude && window.claude.use ? await window.claude.use("downloads") : null; } catch (e) {}
+  if (dl) {
+    try { await dl.save({ filename: name, data }); return; }
+    catch (e) { if (e && e.code === "declined") return; }
+  }
   const a = document.createElement("a");
   a.href = URL.createObjectURL(new Blob([data], { type: "application/json" }));
   a.download = name;
@@ -1493,28 +2287,32 @@ async function exportJSON() {
   setTimeout(() => URL.revokeObjectURL(a.href), 2000);
 }
 
-function importJSON(text) {
+async function importJSON(text) {
   let doc;
   try { doc = JSON.parse(text); } catch (e) { return gmsg("Diese Datei ist keine gültige Saatzeit-Sicherung."); }
   const rows = Array.isArray(doc) ? doc : doc && Array.isArray(doc.pflanzungen) ? doc.pflanzungen : null;
   if (!rows) return gmsg("In dieser Datei wurden keine Pflanzungen gefunden.");
   const have = new Set(garden.entries.map(e => e.id));
-  let added = 0;
+  let added = 0, failed = 0;
   for (const r of rows) {
     if (!r || !plantById(r.pflanze) || !/^\d{4}-\d{2}-\d{2}$/.test(r.datum || "") || !ART[r.art]) continue;
-    const id = String(r.id || Date.now().toString(36) + Math.random().toString(36).slice(2, 6)).slice(0, 40);
+    const id = String(r.id || newId()).slice(0, 40);
     if (have.has(id)) continue;
     have.add(id);
-    garden.entries.push({ id, pflanze: r.pflanze, art: r.art, datum: r.datum,
-      ort: String(r.ort || "").slice(0, 200), menge: String(r.menge || "").slice(0, 200), notiz: String(r.notiz || "").slice(0, 500), erstellt: r.erstellt || new Date().toISOString() });
-    added++;
+    try {
+      await addEntry({ pflanze: r.pflanze, art: r.art, datum: r.datum,
+        ort: String(r.ort || "").slice(0, 200), menge: String(r.menge || "").slice(0, 200), notiz: String(r.notiz || "").slice(0, 500),
+        erstellt: r.erstellt || new Date().toISOString() }, id, false);
+      added++;
+    } catch (e) { failed++; }
   }
   if (doc && Array.isArray(doc.favoriten)) {
     doc.favoriten.filter(plantById).forEach(id => state.favs.add(id));
     store.set("saatzeit.favs", [...state.favs]);
   }
-  saveLocal(); gardenChanged(); renderTodo();
-  gmsg(added ? `${countText(added)} wiederhergestellt.` : "Alle Einträge aus der Datei sind schon vorhanden.");
+  gardenChanged(); renderTodo();
+  gmsg((added ? `${countText(added)} wiederhergestellt.` : "Alle Einträge aus der Datei sind schon vorhanden.")
+    + (failed ? ` ${countText(failed)} konnten nicht gespeichert werden.` : ""));
 }
 document.getElementById("import").addEventListener("click", () => document.getElementById("importfile").click());
 document.getElementById("importfile").addEventListener("change", async e => {
@@ -1605,7 +2403,7 @@ function toggleFav(id) {
   state.favs.has(id) ? state.favs.delete(id) : state.favs.add(id);
   store.set("saatzeit.favs", [...state.favs]);
   document.querySelectorAll(`[data-star="${id}"]`).forEach(b => b.setAttribute("aria-pressed", state.favs.has(id)));
-  renderTodo();
+  renderTodo(); renderGarden();
   if (state.onlyFav) renderList();
   queueReminders();
 }
@@ -1677,6 +2475,49 @@ document.getElementById("onlyfav").addEventListener("click", e => {
   state.onlyFav = !state.onlyFav; e.currentTarget.setAttribute("aria-pressed", state.onlyFav); renderList();
 });
 
+/* ---------- Seiten und Menü ---------- */
+const VIEWS = { home: "Home", garten: "Meine Pflanzen", hilfe: "Hilfe", faq: "Fragen & Antworten", impressum: "Impressum" };
+const menuBtn = document.getElementById("menu-btn"), menuList = document.getElementById("menu-list");
+function setMenu(open) {
+  menuList.hidden = !open;
+  menuBtn.setAttribute("aria-expanded", String(open));
+}
+function showView(v) {
+  document.querySelectorAll(".view").forEach(el => { el.hidden = el.dataset.view !== v; });
+  document.getElementById("menu-current").textContent = VIEWS[v];
+  menuList.querySelectorAll("a").forEach(a => {
+    if (a.dataset.nav === v) a.setAttribute("aria-current", "page"); else a.removeAttribute("aria-current");
+  });
+}
+// Hash steuert die Seite. Ein Anker innerhalb der Startseite (z. B. #monat) öffnet Home und scrollt dorthin.
+function route() {
+  const h = decodeURIComponent(location.hash.slice(1));
+  setMenu(false);
+  if (!document.getElementById("drawer").hidden) closeDetail();
+  if (VIEWS[h]) { showView(h); window.scrollTo(0, 0); return; }
+  showView("home");
+  const el = h && document.getElementById(h);
+  if (el) el.scrollIntoView(); else window.scrollTo(0, 0);
+}
+window.addEventListener("hashchange", route);
+menuBtn.addEventListener("click", () => {
+  const open = menuList.hidden;
+  setMenu(open);
+  if (open) (menuList.querySelector("a[aria-current]") || menuList.querySelector("a")).focus();
+});
+document.addEventListener("click", e => { if (!menuList.hidden && !e.target.closest(".menu")) setMenu(false); });
+menuList.addEventListener("click", e => {
+  // Gleiche Seite nochmals gewählt: kein hashchange, also selbst schliessen und nach oben
+  const a = e.target.closest("a");
+  if (a && location.hash.slice(1) === a.dataset.nav) { setMenu(false); window.scrollTo(0, 0); }
+});
+menuList.addEventListener("keydown", e => {
+  const items = [...menuList.querySelectorAll("a")], i = items.indexOf(document.activeElement);
+  if (e.key === "ArrowDown") { e.preventDefault(); items[(i + 1) % items.length].focus(); }
+  if (e.key === "ArrowUp") { e.preventDefault(); items[(i - 1 + items.length) % items.length].focus(); }
+  if (e.key === "Escape") { setMenu(false); menuBtn.focus(); }
+});
+
 document.getElementById("view").addEventListener("click", e => {
   const b = e.target.closest("button"); if (!b) return;
   state.view = b.dataset.v; store.set("saatzeit.view", state.view);
@@ -1688,10 +2529,7 @@ document.querySelectorAll("#view button").forEach(x => x.setAttribute("aria-pres
 ["gesturestart", "gesturechange"].forEach(t => document.addEventListener(t, e => e.preventDefault(), { passive: false }));
 document.addEventListener("touchmove", e => { if (e.scale && e.scale !== 1) e.preventDefault(); }, { passive: false });
 
-document.getElementById("newquote").addEventListener("click", () => {
-  quoteIdx = (quoteIdx + 1 + Math.floor(Math.random() * (QUOTES.length - 1))) % QUOTES.length;
-  renderQuote();
-});
+document.getElementById("newquote").addEventListener("click", renderQuote);
 
 const seasonNow = seasonKey(now.getMonth() + 1);
 document.documentElement.style.setProperty("--season", SEASONS[seasonNow].c);
@@ -1700,6 +2538,7 @@ renderQuote();
 renderAll();
 renderRemindBtn();
 initGarden();
+route();
 </script>
 </body>
 </html>
