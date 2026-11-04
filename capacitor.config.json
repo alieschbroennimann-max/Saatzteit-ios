@@ -1,0 +1,14 @@
+{
+  "appId": "ch.saatzeit.app",
+  "appName": "Saatzeit",
+  "webDir": "www",
+  "ios": {
+    "contentInset": "never",
+    "backgroundColor": "#F3F5F0"
+  },
+  "plugins": {
+    "LocalNotifications": {
+      "iconColor": "#1F5C4A"
+    }
+  }
+}

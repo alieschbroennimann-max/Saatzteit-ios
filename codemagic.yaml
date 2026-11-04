@@ -1,0 +1,38 @@
+# Codemagic baut Saatzeit in der Cloud auf einem Mac und liefert eine unsignierte .ipa.
+# Die .ipa wird danach mit Sideloadly und einer normalen Apple-ID aufs iPhone gespielt (7 Tage gültig).
+workflows:
+  ios-test:
+    name: Saatzeit iPhone-Test (unsigniert)
+    instance_type: mac_mini_m2
+    max_build_duration: 45
+    environment:
+      node: 20
+      xcode: latest
+      cocoapods: default
+    scripts:
+      - name: Pakete installieren
+        script: npm install
+      - name: iOS-Projekt erzeugen
+        script: |
+          npx cap add ios
+          npx capacitor-assets generate --ios
+          npx cap sync ios
+      - name: App bauen (ohne Signatur)
+        script: |
+          if [ -d ios/App/App.xcworkspace ]; then
+            TARGET="-workspace ios/App/App.xcworkspace"
+          else
+            TARGET="-project ios/App/App.xcodeproj"
+          fi
+          xcodebuild $TARGET -scheme App -configuration Release \
+            -sdk iphoneos -destination 'generic/platform=iOS' \
+            -archivePath "$CM_BUILD_DIR/build/Saatzeit.xcarchive" \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" \
+            archive
+      - name: IPA verpacken
+        script: |
+          mkdir -p Payload
+          cp -R "$CM_BUILD_DIR/build/Saatzeit.xcarchive/Products/Applications/App.app" Payload/
+          zip -qry Saatzeit-unsigniert.ipa Payload
+    artifacts:
+      - Saatzeit-unsigniert.ipa
