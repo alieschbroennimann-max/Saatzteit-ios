@@ -33,7 +33,7 @@ window.addEventListener("error", e => {
   const C = window.Capacitor;
   if (!C || !C.isNativePlatform || !C.isNativePlatform() || typeof C.registerPlugin !== "function") return;
   const Prefs = C.registerPlugin("Preferences");
-  const keys = ["saatzeit.pflanzungen", "saatzeit.favs", "saatzeit.shift", "saatzeit.view", "saatzeit.erinnerungen"];
+  const keys = ["saatzeit.pflanzungen", "saatzeit.favs", "saatzeit.shift", "saatzeit.view", "saatzeit.erinnerungen", "saatzeit.zustimmung"];
   let restored = false;
   for (const k of keys) {
     if (localStorage.getItem(k) !== null) continue;
@@ -293,6 +293,45 @@ select, input[type="search"] {
 .hcard strong { font-family: var(--f-display); font-size: 1.4rem; line-height: 1.1; }
 .hcard .hint { color: var(--muted); font-size: .88rem; }
 .more { grid-column: 1 / -1; justify-self: start; color: var(--season-ink); font-weight: 700; font-size: .9rem; position: relative; }
+/* Verhalten wie eine App statt wie eine Webseite: Texte nicht markierbar, kein Kopier-Menü beim langen
+   Drücken, kein grauer Blitz beim Antippen. Eingabefelder und die E-Mail-Adresse bleiben markierbar. */
+html { -webkit-tap-highlight-color: transparent; }
+body { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+input, textarea, select, .selectable { -webkit-user-select: text; user-select: text; -webkit-touch-callout: default; }
+svg, img { -webkit-user-drag: none; }
+.faq a { color: var(--accent); font-weight: 700; }
+.mail-btn { min-height: 46px; padding-inline: 18px; }
+
+/* Zustimmung beim ersten Öffnen */
+html.locked, html.locked body { overflow: hidden; }
+.consent {
+  position: fixed; inset: 0; z-index: 50; overflow-y: auto; background: var(--bg);
+  display: flex; justify-content: center;
+  padding: calc(24px + env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) calc(24px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px));
+}
+.consent-box { width: 100%; max-width: 640px; margin: auto 0; display: flex; flex-direction: column; gap: 14px; }
+.consent-box > p { margin: 0; }
+.consent h2 { font-size: clamp(2rem, 7vw, 2.8rem); font-weight: 800; line-height: 1; }
+.consent-legal { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 16px 18px; }
+.legal { display: flex; flex-direction: column; gap: 12px; }
+.consent-check { display: flex; gap: 12px; align-items: flex-start; font-weight: 700; cursor: pointer; }
+.consent-check input { width: 24px; height: 24px; flex: none; margin: 1px 0 0; accent-color: var(--accent); }
+.consent-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+.consent-actions .btn { min-height: 46px; padding-inline: 18px; }
+.btn[disabled] { opacity: .45; cursor: not-allowed; }
+.hblock { position: relative; display: flex; flex-direction: column; gap: 10px; }
+.hempty { margin: 0; color: var(--muted); max-width: 60ch; }
+.hrows { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 10px; }
+.hrow {
+  display: flex; align-items: center; gap: 12px; text-align: left; padding: 12px 14px;
+  background: var(--surface); border: 1px solid var(--line); border-radius: 14px;
+}
+.hrow:hover { border-color: var(--season); }
+.hrow-txt { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.hrow strong { font-family: var(--f-display); font-size: 1.15rem; line-height: 1.15; }
+.hrow .when { font-size: .9rem; color: var(--fg); }
+.hrow.reif { border-color: var(--c-ernte); background: color-mix(in oklab, var(--c-ernte) 10%, var(--surface)); }
+.hrow.reif .when { color: var(--c-ernte); font-weight: 700; }
 .hero-foot { position: relative; display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; }
 .hbox { background: color-mix(in oklab, var(--surface) 75%, transparent); border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px; display: flex; flex-direction: column; gap: 8px; }
 .hbox[hidden] { display: none; }
@@ -500,10 +539,16 @@ input, select, textarea { font-size: max(16px, 1rem) !important; }
         <button class="icon-btn" id="newquote" aria-label="Anderer Spruch" title="Anderer Spruch">↻</button>
       </div>
     </div>
-    <div class="hcards" id="hcards"></div>
+    <div class="hblock">
+      <span class="label">Jetzt säen und pflanzen</span>
+      <div class="hcards" id="hcards"></div>
+    </div>
+    <div class="hblock">
+      <span class="label">In den nächsten drei Wochen zu ernten</span>
+      <div id="hharvest"></div>
+    </div>
     <div class="hero-foot">
       <div class="hbox" id="hnext"></div>
-      <div class="hbox ripe" id="hripe" hidden></div>
     </div>
   </section>
 
@@ -652,7 +697,8 @@ input, select, textarea { font-size: max(16px, 1rem) !important; }
     </section>
     <div class="faq">
       <details><summary>Wie genau sind die Termine?</summary><div><p>Es sind Richtwerte für die Schweiz und Mitteleuropa. Das Wetter ist jedes Jahr anders: Ist der Frühling kalt, wartest du lieber eine Woche länger. Mit der Lage-Einstellung passt du die Termine an deine Höhe an.</p></div></details>
-      <details><summary>Was sind die Eisheiligen?</summary><div><p>Die Tage vom 11. bis 15. Mai. Bis dann kann es nachts noch Frost geben. Frostempfindliche Pflanzen wie Tomaten, Gurken, Kürbis oder Basilikum setzt du erst danach ins Freie.</p></div></details>
+      <details><summary>Was sind die Eisheiligen?</summary><div><p>Die Tage vom 11. bis 15. Mai. Nach einer alten Faustregel ist Frost danach seltener, darum setzen viele frostempfindliche Pflanzen wie Tomaten, Gurken, Kürbis oder Basilikum erst dann ins Freie. Eine Garantie ist das nicht: Auch später kann es noch Frost geben, besonders in höheren oder kühlen Lagen. Schau vor dem Auspflanzen den Wetterbericht an und halte ein Vlies bereit.</p></div></details>
+      <details><summary>Was ist Martini?</summary><div><p>Der Martinstag am 11. November. Er galt früher als Abschluss des Bauern- und Gartenjahres. Für den Garten heisst das: Knoblauch sollte ungefähr bis dann in der Erde sein, und die Beete bekommen eine Decke aus Laub oder Mulch.</p></div></details>
       <details><summary>Was bedeuten Lichtkeimer und Dunkelkeimer?</summary><div><p>Lichtkeimer brauchen Licht zum Keimen. Du drückst die Samen nur an und bedeckst sie nicht mit Erde. Dunkelkeimer bedeckst du mit Erde, ungefähr zwei- bis dreimal so dick wie das Samenkorn.</p></div></details>
       <details><summary>Wie wird «Ernte in ca. X Wochen» berechnet?</summary><div><p>Saatzeit nimmt das Datum deines Eintrags und rechnet die übliche Wachstumszeit der Pflanze dazu. Fällt das Ergebnis ausserhalb der Erntezeit, springt es zum nächsten Erntefenster. Ein Radieschen, das du im Spätherbst säst, wird darum erst im Frühling reif.</p></div></details>
       <details><summary>Was sind gute und schlechte Nachbarn?</summary><div><p>Manche Pflanzen helfen sich gegenseitig, zum Beispiel halten Zwiebeln und Rüebli einander Schädlinge fern. Andere nehmen sich Nährstoffe weg oder fördern Krankheiten. Die Angaben findest du in jeder Pflanze ganz unten.</p></div></details>
@@ -660,7 +706,7 @@ input, select, textarea { font-size: max(16px, 1rem) !important; }
       <details><summary>Was passiert, wenn ich die App lösche?</summary><div><p>Dann sind auch deine Einträge auf dem Gerät weg. Lege vorher unter «Meine Pflanzen» mit «Sichern» eine Kopie ab.</p></div></details>
       <details><summary>Wie nehme ich meine Einträge auf ein neues Handy mit?</summary><div><p>Auf dem alten Handy unter «Meine Pflanzen» auf «Sichern» tippen und die Datei in iCloud Drive ablegen. Auf dem neuen Handy auf «Wiederherstellen» tippen und die Datei auswählen.</p></div></details>
       <details><summary>Warum bekomme ich keine Erinnerungen?</summary><div><p>Prüfe unter «Meine Pflanzen», ob die Erinnerungen eingeschaltet sind, und in den iPhone-Einstellungen unter Mitteilungen → Saatzeit, ob Mitteilungen erlaubt sind. Erinnerungen gibt es nur in der iPhone-App, nicht im Browser.</p></div></details>
-      <details><summary>Kann ich eigene Pflanzen hinzufügen?</summary><div><p>Noch nicht. Fehlt dir eine Pflanze, melde dich über die Adresse im Impressum.</p></div></details>
+      <details><summary>Kann ich eigene Pflanzen hinzufügen?</summary><div><p>Noch nicht. Fehlt dir eine Pflanze, <a href="mailto:aliesch.broennimann@outlook.com?subject=Saatzeit%3A%20Pflanzenwunsch">schreib eine E-Mail</a>.</p></div></details>
     </div>
   </div>
 
@@ -671,10 +717,13 @@ input, select, textarea { font-size: max(16px, 1rem) !important; }
       <h2 class="page-title">Impressum</h2>
     </section>
     <div class="prose">
-      <h3>Herausgeberin</h3>
+      <h3>Herausgeber</h3>
       <p>Aliesch Brönnimann<br>Schweiz</p>
-      <p>Kontakt: aliesch.broennimann@outlook.com</p>
+      <p>Kontakt: <span class="selectable">aliesch.broennimann@outlook.com</span></p>
+      <p><a class="btn primary mail-btn" href="mailto:aliesch.broennimann@outlook.com?subject=Saatzeit">E-Mail schreiben</a></p>
 
+      <!-- Diese drei Abschnitte werden beim ersten Öffnen auch zur Zustimmung angezeigt -->
+      <div class="legal" id="legal">
       <h3>Haftung</h3>
       <p>Die Angaben in Saatzeit sind sorgfältig zusammengestellt, aber Richtwerte. Wetter, Lage und Boden können abweichen. Für Ernteausfälle oder Schäden wird keine Haftung übernommen. Bei Wildkräutern wie Bärlauch gilt: Nur sammeln und essen, was du sicher erkennst.</p>
 
@@ -683,14 +732,34 @@ input, select, textarea { font-size: max(16px, 1rem) !important; }
 
       <h3>Urheberrecht</h3>
       <p>Texte, Pflanzendaten, Symbole und Gestaltung stammen aus Saatzeit. Die Bauernregeln sind überlieferte Volksweisheiten. Schriften: Bricolage Grotesque, Atkinson Hyperlegible und IBM Plex Mono, alle unter der SIL Open Font License.</p>
+      </div>
 
       <p class="meta">Saatzeit, Version 1.0 (Test)</p>
     </div>
   </div>
 
   <footer>
-    Richtwerte für die Schweiz bzw. Mitteleuropa. Frostempfindliches erst nach den Eisheiligen (11.–15. Mai) ins Freie. Die Lage-Einstellung verschiebt Frühlingstermine nach hinten und Herbsttermine nach vorne, jeweils um etwa zwei Wochen pro Stufe. Mehr dazu unter <a href="#hilfe">Hilfe</a> und <a href="#faq">Fragen &amp; Antworten</a>.
+    Richtwerte für die Schweiz bzw. Mitteleuropa. Frostempfindliches meist erst nach den Eisheiligen (11.–15. Mai) ins Freie, und auch dann mit Blick auf den Wetterbericht. Die Lage-Einstellung verschiebt Frühlingstermine nach hinten und Herbsttermine nach vorne, jeweils um etwa zwei Wochen pro Stufe. Mehr dazu unter <a href="#hilfe">Hilfe</a> und <a href="#faq">Fragen &amp; Antworten</a>.
   </footer>
+</div>
+
+<!-- Zustimmung beim ersten Öffnen. Ohne Zustimmung bleibt die App gesperrt. -->
+<div class="consent" id="consent" role="dialog" aria-modal="true" aria-labelledby="consent-title" hidden>
+  <div class="consent-box">
+    <span class="label">Willkommen bei Saatzeit</span>
+    <h2 id="consent-title">Bevor es losgeht</h2>
+    <p>Saatzeit ist ein Pflanzkalender für Garten, Balkon und Fensterbrett. Bitte lies die folgenden Punkte und bestätige sie.</p>
+    <div class="consent-legal prose" id="consent-legal"></div>
+    <label class="consent-check" for="consent-ok">
+      <input type="checkbox" id="consent-ok">
+      <span>Ich habe Haftung, Datenschutz und Urheberrecht gelesen und bin einverstanden.</span>
+    </label>
+    <div class="consent-actions">
+      <button class="btn primary" id="consent-accept" disabled>Akzeptieren und loslegen</button>
+      <button class="btn" id="consent-decline">Ablehnen</button>
+    </div>
+    <p class="meta" id="consent-msg" role="status"></p>
+  </div>
 </div>
 
 <div class="scrim" id="scrim" hidden></div>
@@ -1161,7 +1230,7 @@ const TASKS = {
   2:["Peperoni und Chili warm vorziehen.","Werkzeug reinigen und schärfen.","Nasse Beete nicht betreten, das verdichtet den Boden."],
   3:["Tomaten ab Mitte Monat vorziehen.","Erste Direktsaaten (Radieschen, Spinat, Erbsen) unter Vlies.","Reifen Kompost auf die Beete verteilen."],
   4:["Kartoffeln und Zwiebeln setzen.","Ab Mitte April Kürbis, Zucchetti und Gurken drinnen vorziehen.","Schnittlauch und Minze teilen."],
-  5:["Jungpflanzen tagsüber nach draussen stellen und abhärten.","Nach den Eisheiligen (11.–15. Mai) Tomaten, Gurken, Kürbis und Basilikum auspflanzen.","Buschbohnen säen."],
+  5:["Jungpflanzen tagsüber nach draussen stellen und abhärten.","Nach den Eisheiligen (11.–15. Mai) und wenn keine Frostnächte mehr angesagt sind: Tomaten, Gurken, Kürbis und Basilikum auspflanzen.","Buschbohnen säen."],
   6:["Beete mulchen und morgens giessen.","Tomaten ausgeizen und anbinden.","Salat, Radieschen und Dill nachsäen."],
   7:["Kräuter vor der Blüte schneiden und trocknen.","Federkohl auspflanzen.","Abgeerntete Flächen gleich wieder einsäen."],
   8:["Erdbeeren neu pflanzen.","Nüsslisalat und Wintersalat säen.","Spinat für den Herbst säen."],
@@ -1642,14 +1711,14 @@ const SPRUECHE = [
 const EVENTS = [
   { m:2, d:1, t:"Anzucht Peperoni & Chili", s:"Die ersten Wärmeliebenden kommen warm auf die Fensterbank." },
   { m:3, d:15, t:"Tomaten vorziehen", s:"Start der Anzucht für Tomaten, Physalis und Sellerie." },
-  { m:3, d:20, t:"Frühlingsanfang", s:"Radieschen, Spinat und Erbsen dürfen ins Beet, bei Kälte unter Vlies." },
-  { m:5, d:11, t:"Eisheilige (11.–15. Mai)", s:"Danach dürfen Tomaten, Gurken, Kürbis und Basilikum raus." },
+  { m:3, d:20, t:"Frühlingsanfang", s:"Radieschen, Spinat und Erbsen können ins Beet, bei Kälte unter Vlies." },
+  { m:5, d:11, t:"Eisheilige (11.–15. Mai)", s:"Alte Faustregel: Danach ist Frost seltener. Prüf trotzdem den Wetterbericht, bevor Tomaten, Gurken und Basilikum rausgehen." },
   { m:6, d:11, t:"Schafskälte", s:"Oft ein Kälteeinbruch. Junge Pflanzen bei Bedarf mit Vlies schützen." },
-  { m:6, d:24, t:"Johanni", s:"Ende der Rhabarberernte. Ab jetzt Herbst- und Wintergemüse säen." },
-  { m:8, d:1, t:"Erdbeerzeit", s:"Bester Moment, neue Erdbeeren zu pflanzen. Nüsslisalat säen." },
+  { m:6, d:24, t:"Johanni (Johannistag)", s:"Traditionelles Ende der Rhabarberernte. Ab jetzt Herbst- und Wintergemüse säen." },
+  { m:8, d:1, t:"Erdbeerzeit", s:"Guter Moment, neue Erdbeeren zu pflanzen. Nüsslisalat säen." },
   { m:9, d:23, t:"Herbstanfang", s:"Kürbisse ausreifen lassen, leere Beete mit Gründüngung einsäen." },
-  { m:10, d:15, t:"Erste Frostnächte möglich", s:"Auf 600 m ab Mitte Oktober: Kürbisse ernten, Kübel schützen." },
-  { m:11, d:11, t:"Martini", s:"Letzte Gelegenheit, Knoblauch zu stecken. Beete mit Laub abdecken." },
+  { m:10, d:15, t:"Erste Frostnächte möglich", s:"Auf 600 m oft ab Mitte Oktober: Kürbisse ernten, Kübel schützen." },
+  { m:11, d:11, t:"Martini (Martinstag)", s:"Der traditionelle Abschluss des Gartenjahres. Ungefähr letzte Gelegenheit, Knoblauch zu stecken. Beete mit Laub abdecken." },
   { m:12, d:21, t:"Winteranfang", s:"Zeit zum Planen: Saatgut sichten und das Gartenjahr vorbereiten." }
 ];
 
@@ -1842,13 +1911,15 @@ function heroTasks() {
     }
     return out.sort((a, b) => b.s - a.s);
   };
+  // Nur was jetzt vorgezogen, gesät oder ausgepflanzt wird. Ernten zeigt der Bereich darunter.
+  const tasks = collect(["v", "d", "p"]);
   const seen = new Set(), pick = [];
-  for (const t of [...collect(["v", "d", "p"]), ...collect(["e"])]) {
-    if (pick.length === 3) break;
+  for (const t of tasks) {
+    if (pick.length === 4) break;
     if (seen.has(t.p.id)) continue;
     seen.add(t.p.id); pick.push(t);
   }
-  const total = new Set(collect(["v", "d", "p", "e"]).map(t => t.p.id)).size;
+  const total = new Set(tasks.map(t => t.p.id)).size;
   return { pick, total };
 }
 
@@ -1882,41 +1953,42 @@ function renderHero() {
   document.getElementById("h-now").textContent = MONTHS[t.getMonth()];
 
   const { pick, total } = heroTasks();
-  document.getElementById("hcards").innerHTML = pick.map(({ p, k, w, endsNow, startsNow }) => {
+  document.getElementById("hcards").innerHTML = pick.length ? pick.map(({ p, k, w, endsNow, startsNow }) => {
     const kind = KINDS.find(x => x.k === k);
-    const hint = k === "e" ? `Noch bis ${endLabel(w[1])}`
-      : endsNow ? `Letzte Gelegenheit, bis ${endLabel(w[1])}`
+    const hint = endsNow ? `Letzte Gelegenheit, bis ${endLabel(w[1])}`
       : startsNow ? `Ab jetzt, bis ${endLabel(w[1])}` : `Noch bis ${endLabel(w[1])}`;
     return `<button class="hcard" data-id="${p.id}">${icon(p, "lg")}
       <span class="pill ${kind.cls}">${kind.label}</span><strong>${esc(p.n)}</strong><span class="hint">${hint}</span></button>`;
-  }).join("") + (total > pick.length ? `<a class="more" href="#monat">+ ${total - pick.length} weitere Pflanzen in der Monatsübersicht</a>` : "");
+  }).join("") + (total > pick.length ? `<a class="more" href="#monat">+ ${total - pick.length} weitere Pflanzen in der Monatsübersicht</a>` : "")
+    : `<p class="hempty">Diesen Monat gibt es nichts vorzuziehen, zu säen oder auszupflanzen. Zeit, das nächste Gartenjahr zu planen.</p>`;
+
+  // Eigene Pflanzungen, die jetzt reif sind oder in den nächsten 21 Tagen reif werden
+  const today = startOfDay(t), limit = new Date(today.getTime() + 21 * DAY);
+  const all = garden.entries.map(e => ({ e, p: plantById(e.pflanze), g: growth(e) })).filter(x => x.p && x.g);
+  const soon = all.filter(x => x.g.status === "reif" || (x.g.status === "wachsend" && x.g.ready <= limit))
+    .sort((a, b) => (a.g.status === "reif" ? 0 : a.g.ready) - (b.g.status === "reif" ? 0 : b.g.ready));
+  const hh = document.getElementById("hharvest");
+  if (soon.length) {
+    hh.innerHTML = `<div class="hrows">${soon.map(({ e, p, g }) => {
+      const reif = g.status === "reif", days = Math.round((g.ready - today) / DAY);
+      const when = reif ? `Jetzt erntereif, bis ${dateLong(g.end)}` : `Ab ${dateLong(g.ready)} · ${relDays(days).replace(/^./, c => c.toLowerCase())}`;
+      const where = [e.ort, `${(ART[e.art] || ART.p).label} am ${fmtDate(e.datum)}`].filter(Boolean).map(esc).join(" · ");
+      return `<button class="hrow${reif ? " reif" : ""}" data-id="${p.id}">${icon(p)}
+        <span class="hrow-txt"><strong>${esc(p.n)}</strong><span class="when">${when}</span><span class="meta">${where}</span></span></button>`;
+    }).join("")}</div><a class="more" href="#garten">Alle meine Pflanzen</a>`;
+  } else if (all.length) {
+    const next = all.filter(x => x.g.status === "wachsend").sort((a, b) => a.g.ready - b.g.ready)[0];
+    hh.innerHTML = `<p class="hempty">In den nächsten drei Wochen ist bei dir nichts erntereif.${next
+      ? ` Als Nächstes: <strong>${esc(next.p.n)}</strong>, ab ${dateLong(next.g.ready)}.` : ""}</p><a class="more" href="#garten">Alle meine Pflanzen</a>`;
+  } else {
+    hh.innerHTML = `<p class="hempty">Hier erscheint, was du gesät oder gepflanzt hast, sobald es bald erntereif ist. Öffne eine Pflanze und trage es unter «Angepflanzt» ein.</p><a class="more" href="#h-all">Zu allen Pflanzen</a>`;
+  }
 
   const [n1, n2] = nextEvents(2);
   document.getElementById("hnext").innerHTML = `<span class="label">Nächster Termin</span>
     <div class="ev"><b class="ev-when">${relDays(n1.days)}</b>
       <div><strong>${esc(n1.t)}</strong> <span class="meta">${dateLong(n1.date)}</span><p>${esc(n1.s)}</p></div></div>
     ${n2 ? `<p class="ev-later">Danach: ${esc(n2.t)}, ${relDays(n2.days).replace(/^./, c => c.toLowerCase())}</p>` : ""}`;
-
-  const ripeBox = document.getElementById("hripe");
-  const prog = garden.entries.map(e => ({ e, g: growth(e) })).filter(x => x.g);
-  const seenR = new Set();
-  const ripe = prog.filter(x => x.g.status === "reif" && !seenR.has(x.e.pflanze) && seenR.add(x.e.pflanze));
-  if (ripe.length) {
-    ripeBox.innerHTML = `<span class="label">Bei dir erntereif</span><div class="chips">${ripe.map(({ e, g }) => {
-      const p = plantById(e.pflanze);
-      return `<button class="chip" data-id="${p.id}">${esc(p.n)} <span class="meta">bis ${dateLong(g.end)}</span></button>`;
-    }).join("")}</div><a class="more" href="#garten">Alle meine Pflanzen</a>`;
-    ripeBox.hidden = false;
-  } else {
-    const next = prog.filter(x => x.g.status === "wachsend").sort((a, b) => a.g.ready - b.g.ready)[0];
-    if (next) {
-      const p = plantById(next.e.pflanze);
-      ripeBox.innerHTML = `<span class="label">Als Nächstes reif bei dir</span>
-        <div class="ev"><b class="ev-when">${relDays(Math.round((next.g.ready - startOfDay(t)) / DAY))}</b>
-        <div><button class="chip" data-id="${p.id}">${esc(p.n)}</button><p>Ab ${dateLong(next.g.ready)}</p></div></div>`;
-      ripeBox.hidden = false;
-    } else ripeBox.hidden = true;
-  }
 }
 
 /* ---------- Mein Garten: Pflanzungen speichern ----------
@@ -1996,7 +2068,8 @@ function growth(e) {
   const start = new Date(e.datum + "T00:00:00"), t = startOfDay(new Date());
   const r = REIF[p.id] || [];
   const days = e.art === "p" ? (r[1] ?? r[0] ?? 50) : (r[0] ?? r[1] ?? 70);
-  const earliest = new Date(start.getTime() + days * DAY);
+  // In Kalendertagen rechnen, sonst verschiebt die Zeitumstellung das Datum um eine Stunde
+  const earliest = new Date(start.getFullYear(), start.getMonth(), start.getDate() + days);
   const ivs = harvestIntervals(p, start.getFullYear());
   let iv = ivs.find(([, b]) => b >= earliest);
   if (!iv) return null;
@@ -2475,6 +2548,36 @@ document.getElementById("onlyfav").addEventListener("click", e => {
   state.onlyFav = !state.onlyFav; e.currentTarget.setAttribute("aria-pressed", state.onlyFav); renderList();
 });
 
+/* ---------- Zustimmung beim ersten Öffnen ----------
+   Ändern sich Haftung, Datenschutz oder Urheberrecht wesentlich, CONSENT_VERSION erhöhen:
+   dann fragt die App alle noch einmal. */
+const CONSENT_VERSION = 1;
+function initConsent() {
+  if (store.get("saatzeit.zustimmung", 0) >= CONSENT_VERSION) return;
+  const box = document.getElementById("consent"), app = document.querySelector(".wrap");
+  const ok = document.getElementById("consent-ok"), accept = document.getElementById("consent-accept");
+  document.getElementById("consent-legal").innerHTML = document.getElementById("legal").innerHTML;
+  box.hidden = false; app.inert = true;
+  document.documentElement.classList.add("locked");
+  ok.addEventListener("change", () => { accept.disabled = !ok.checked; });
+  accept.addEventListener("click", () => {
+    store.set("saatzeit.zustimmung", CONSENT_VERSION);
+    box.hidden = true; app.inert = false;
+    document.documentElement.classList.remove("locked");
+  });
+  document.getElementById("consent-decline").addEventListener("click", () => {
+    document.getElementById("consent-msg").textContent = "Ohne deine Zustimmung kann Saatzeit nicht genutzt werden. Du kannst sie jederzeit hier geben.";
+  });
+  ok.focus();
+}
+
+// Kopieren nur aus Eingabefeldern und der E-Mail-Adresse zulassen
+document.addEventListener("copy", e => {
+  const node = document.getSelection()?.anchorNode;
+  const el = node && (node.nodeType === 1 ? node : node.parentElement);
+  if (!(el && el.closest("input, textarea, .selectable")) && !e.target.closest?.("input, textarea")) e.preventDefault();
+});
+
 /* ---------- Seiten und Menü ---------- */
 const VIEWS = { home: "Home", garten: "Meine Pflanzen", hilfe: "Hilfe", faq: "Fragen & Antworten", impressum: "Impressum" };
 const menuBtn = document.getElementById("menu-btn"), menuList = document.getElementById("menu-list");
@@ -2539,6 +2642,7 @@ renderAll();
 renderRemindBtn();
 initGarden();
 route();
+initConsent();
 </script>
 </body>
 </html>
