@@ -60,6 +60,13 @@ project.save
 puts "PrivacyInfo.xcprivacy liegt in ios/App/App und ist im Projekt eingetragen."
 puts "App-Projekt: nur iPhone, iOS #{MIN_IOS} als Mindestversion, Version #{version}"
 
+# Alte Platzhalter-Startbilder der Vorlage entfernen, sobald capacitor-assets eigene erzeugt hat
+# (sonst warnt Xcode: The image set "Splash" has 3 unassigned children)
+splash_dir = File.join(app_dir, "Assets.xcassets", "Splash.imageset")
+if Dir.glob(File.join(splash_dir, "Default@*")).any?
+  Dir.glob(File.join(splash_dir, "splash-2732x2732*.png")).each { |f| File.delete(f) }
+end
+
 # 2. Exportbestimmungen, iPad-Angaben entfernen
 plist_path = File.join(app_dir, "Info.plist")
 abort "Info.plist fehlt: #{plist_path}" unless File.file?(plist_path)
