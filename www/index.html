@@ -93,7 +93,7 @@ try {
 /* Layout: Saatgut-Tütchen-Logik. Oben "Was jetzt dran ist", darunter ein Jahresbalken pro Pflanze; Details in einer Seitenschublade. */
 html { -webkit-text-size-adjust: 100%; touch-action: manipulation; } /* kein Doppeltipp-Zoom */
 html { font-size: calc(16px * var(--ts, 1)); } /* --ts: Schriftgrösse aus den Einstellungen */
-:root { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
+:root { padding-top: env(safe-area-inset-top, 0px); } /* unten: Platz schafft .wrap für die Leiste */
 body { margin: 0; }
 img { max-width: 100%; }
 [hidden] { display: none !important; }
@@ -147,7 +147,7 @@ body {
   font-family: var(--f-body); font-size: 1rem; line-height: 1.5;
   padding-left: max(16px, env(safe-area-inset-left, 0px));
   padding-right: max(16px, env(safe-area-inset-right, 0px));
-  padding-block: 28px 64px;
+  padding-block: 28px 0;
 }
 .wrap { max-width: 1080px; margin: 0 auto; display: flex; flex-direction: column; gap: 40px; }
 h1, h2, h3 { font-family: var(--f-display); margin: 0; text-wrap: balance; letter-spacing: -0.01em; }
@@ -185,7 +185,7 @@ button:focus-visible, select:focus-visible, input:focus-visible { outline: 2px s
 .tabbar svg { width: 25px; height: 25px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 .tabbar a[data-tab="mehr"] svg { fill: currentColor; stroke: none; }
 
-.wrap { padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px)); }
+.wrap { padding-bottom: calc(84px + env(safe-area-inset-bottom, 0px)); } /* Leiste (60 px + Sicherheitsbereich) plus 24 px Luft */
 /* Mehr */
 .more-list { display: flex; flex-direction: column; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; }
 .more-list a { display: flex; align-items: center; gap: 14px; min-height: 52px; padding: 10px 16px; color: var(--fg); text-decoration: none; font-weight: 600; }
@@ -328,7 +328,7 @@ select, input[type="search"] {
 .quote { margin: 0; font-family: var(--f-display); font-weight: 500; font-size: 1.2rem; line-height: 1.35; max-width: 48ch; }
 .icon-btn { border: 1px solid transparent; background: none; border-radius: 8px; padding: 2px 8px; font-size: 1.1rem; color: var(--muted); }
 .icon-btn:hover { border-color: var(--line); color: var(--fg); }
-.hcards { position: relative; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
+.hcards { position: relative; display: flex; flex-direction: column; gap: 12px; }
 .hcard {
   text-align: left; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 16px;
   display: flex; flex-direction: column; align-items: flex-start; gap: 8px; box-shadow: 0 2px 10px color-mix(in oklab, var(--season) 12%, transparent);
@@ -412,7 +412,27 @@ html.locked, html.locked body { overflow: hidden; }
 .hrow .when { font-size: .9rem; color: var(--fg); }
 .hrow.reif { border-color: var(--c-ernte); background: color-mix(in oklab, var(--c-ernte) 10%, var(--surface)); }
 .hrow.reif .when { color: var(--c-ernte); font-weight: 700; }
-.hero-foot { position: relative; display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; }
+/* Heute: kompakte Liste «Jetzt säen und pflanzen» */
+.hlist { position: relative; display: flex; flex-direction: column; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; }
+.hline { display: flex; align-items: center; gap: 12px; text-align: left; padding: 10px 14px; border: 0; background: none; }
+.hline + .hline { border-top: 1px solid var(--line); }
+.hline:hover { background: var(--surface-2); }
+.hline strong { font-family: var(--f-display); font-size: 1.08rem; line-height: 1.15; }
+.hline .meta { font-size: .85rem; }
+.hline .sw, .status .sw { display: inline-block; vertical-align: middle; margin: -2px 6px 0 0; }
+/* Termin und Mond als ein schmaler Streifen mit aufklappbaren Details */
+.hero-foot { position: relative; display: flex; flex-direction: column; background: color-mix(in oklab, var(--surface) 75%, transparent); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; }
+.hero-foot .hbox { background: none; border: 0; border-radius: 0; padding: 0; }
+.hero-foot .hbox + .hbox:not([hidden]) { border-top: 1px solid var(--line); }
+.hdet summary { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; padding: 12px 40px 12px 14px; cursor: pointer; list-style: none; position: relative; }
+.hdet summary::-webkit-details-marker { display: none; }
+.hdet summary::after { content: "›"; position: absolute; right: 16px; top: 50%; transform: translateY(-50%); color: var(--muted); font-size: 1.2rem; transition: transform .15s; }
+.hdet[open] summary::after { transform: translateY(-50%) rotate(90deg); }
+.hdet summary .label { flex-basis: 100%; font-size: .72rem; }
+.hdet summary b { font-family: var(--f-display); font-size: 1.05rem; }
+.hdet summary .when { color: var(--season-ink); font-weight: 700; }
+.hdet .hdet-body { padding: 0 14px 14px; color: var(--muted); font-size: .9rem; display: flex; flex-direction: column; gap: 6px; }
+.hdet .hdet-body p { margin: 0; }
 .hbox { background: color-mix(in oklab, var(--surface) 75%, transparent); border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px; display: flex; flex-direction: column; gap: 8px; }
 .hbox[hidden] { display: none; }
 .hbox.ripe { border-color: var(--c-ernte); background: color-mix(in oklab, var(--c-ernte) 12%, var(--surface)); }
@@ -468,7 +488,7 @@ html.locked, html.locked body { overflow: hidden; }
 .gcode-current { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
 .gcode-current code { font-family: var(--f-mono); font-size: 1rem; background: var(--surface-2); padding: 4px 10px; border-radius: 6px; }
 #remind[aria-pressed="true"], #d-bell[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); font-weight: 700; }
-.bell { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
+.bell { display: flex; flex-direction: column; gap: 8px; margin-top: 4px; }
 .bell .meta { margin: 0; }
 .push-list { display: flex; flex-direction: column; gap: 4px; }
 .push-list .check { align-items: flex-start; }
@@ -523,6 +543,24 @@ input[type="date"]::-webkit-date-and-time-value { text-align: left; margin: 0; }
 .d-top { display: flex; align-items: flex-start; gap: 12px; }
 .d-top .txt { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
 .d-top h2 { font-size: 2rem; font-weight: 800; }
+.d-bell-btn { border: 0; background: none; padding: 4px; color: var(--line); line-height: 0; }
+.d-bell-btn svg { width: 26px; height: 26px; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
+.d-bell-btn[aria-pressed="true"] { color: var(--accent); }
+.d-bell-btn[aria-pressed="true"] svg { fill: currentColor; }
+/* aufklappbare Bereiche der Pflanzenseite */
+.fold summary { cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center; min-height: 36px; }
+.fold summary::-webkit-details-marker { display: none; }
+.fold summary::after { content: "›"; color: var(--muted); font-size: 1.2rem; transition: transform .15s; }
+.fold[open] summary::after { transform: rotate(90deg); }
+.fold[open] > :not(summary) { margin-top: 10px; }
+.plant-form .more-fields { grid-column: 1 / -1; }
+.plant-form .more-fields summary { cursor: pointer; color: var(--accent); font-size: .9rem; font-weight: 600; }
+.plant-form .more-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: 10px; }
+.plant-form .more-grid .wide { grid-column: 1 / -1; }
+.add-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+/* Pflanzenliste kompakt */
+.row.compact { grid-template-columns: minmax(0, 1fr); }
+.status { display: inline; }
 .close { border: 1px solid var(--line); background: var(--surface); border-radius: 8px; padding: 6px 10px; }
 .tags { display: flex; flex-wrap: wrap; gap: 6px; }
 .tag { font-size: .8rem; padding: 3px 9px; border-radius: 999px; background: var(--surface-2); border: 1px solid var(--line); }
@@ -566,7 +604,8 @@ input, select, textarea { font-size: max(16px, 1rem) !important; }
   .row.head .mticks span::first-letter { font-size: .82rem; }
   .row { grid-template-columns: minmax(0, 1fr); gap: 6px; }
   .row.head .pname { display: none; }
-  .facts, .nb, .plant-form { grid-template-columns: minmax(0, 1fr); }
+  .nb, .plant-form, .plant-form .more-grid { grid-template-columns: minmax(0, 1fr); }
+  .facts { grid-template-columns: repeat(2, minmax(0, 1fr)); } /* kurze Werte: zu zweit nebeneinander */
   .entry { grid-template-columns: auto minmax(0, 1fr); align-items: start; }
   .entry .x { grid-column: 2; justify-self: start; }
   .topbar { align-items: center; }
@@ -658,7 +697,8 @@ input, select, textarea { font-size: max(16px, 1rem) !important; }
         <button id="onlyfav" aria-pressed="false">★ Meine</button>
       </div>
       <div class="seg" role="group" aria-label="Ansicht" id="view">
-        <button data-v="balken" aria-pressed="true">Jahresbalken</button>
+        <button data-v="liste" aria-pressed="true">Liste</button>
+        <button data-v="balken" aria-pressed="false">Jahresbalken</button>
         <button data-v="karten" aria-pressed="false">Tütchen</button>
       </div>
     </div>
@@ -881,7 +921,7 @@ input, select, textarea { font-size: max(16px, 1rem) !important; }
         <li><strong>Lage wählen.</strong> Unter «Mehr → Einstellungen» stellst du ein, wie hoch oder mild du wohnst. Alle Termine passen sich an.</li>
         <li><strong>Schauen, was dran ist.</strong> «Heute» zeigt die wichtigsten Arbeiten des Monats und den nächsten Gartentermin. Unter «Kalender» findest du jeden Monat und alle Pflanzen.</li>
         <li><strong>Pflanze öffnen.</strong> Tippe auf eine Pflanze. Du siehst, wann, wie und wo sie wächst, dazu Tipps und gute Nachbarn.</li>
-        <li><strong>Eintragen.</strong> Hast du etwas gesät oder gepflanzt, trägst du es in der Pflanze unter «Angepflanzt» ein.</li>
+        <li><strong>Eintragen.</strong> Hast du etwas gesät oder gepflanzt, tippst du in der Pflanze unter «Angepflanzt» auf «+ Eintragen». Mit der Glocke oben lässt du dich an den Beginn der Saatzeit erinnern.</li>
         <li><strong>Wachsen sehen.</strong> Unter «Meine Pflanzen» siehst du, wann deine Pflanzungen erntereif sind.</li>
       </ol>
 
@@ -895,7 +935,7 @@ input, select, textarea { font-size: max(16px, 1rem) !important; }
       <p>Der rote Strich in den Jahresbalken markiert das heutige Datum.</p>
 
       <h3>Pflanzen finden</h3>
-      <p>Im «Kalender» unter «Alle Pflanzen» suchst du nach Namen und filterst nach Kräutern, Gemüse, Früchten oder Blumen und nach Standort. Mit «Tütchen» wechselst du von den Jahresbalken zu Karten.</p>
+      <p>Im «Kalender» unter «Alle Pflanzen» suchst du nach Namen und filterst nach Kräutern, Gemüse, Früchten oder Blumen und nach Standort. Oben wählst du die Ansicht: «Liste» zeigt kurz, was jetzt oder als Nächstes dran ist, «Jahresbalken» das ganze Jahr auf einen Blick und «Tütchen» Karten mit den wichtigsten Angaben.</p>
 
       <h3>Markieren mit ★</h3>
       <p>Tippe auf den Stern neben einer Pflanze. Markierte Pflanzen erscheinen unter «Heute» zuerst, du kannst die Liste mit «★ Meine» auf sie beschränken, und in der App auf dem Handy erinnert dich Saatzeit, kurz bevor ihre Zeit abläuft.</p>
@@ -2010,7 +2050,7 @@ let now = new Date(); // Stand der Anzeige, refreshDay() stellt nach Mitternacht
 const state = {
   month: now.getMonth() + 1,
   shift: Number(store.get("saatzeit.shift", 0)),
-  cat: "all", ort: "all", q: "", onlyFav: false, view: store.get("saatzeit.view", "balken"),
+  cat: "all", ort: "all", q: "", onlyFav: false, view: store.get("saatzeit.view", "liste"),
   remind: store.get("saatzeit.erinnerungen", false),
   favs: new Set(store.get("saatzeit.favs", [])),
   starts: new Set(store.get("saatzeit.start", [])), // Glocke auf der Pflanzenseite: Erinnerung zum Beginn der Zeitfenster
@@ -2092,13 +2132,34 @@ function renderList() {
     ? "Noch keine Pflanzen markiert. Tippe auf ★ neben einer Pflanze, um sie zu Meine Pflanzen hinzuzufügen."
     : "Keine Pflanze passt zu diesen Filtern."}</div>`;
   const list = document.getElementById("list");
-  if (state.view === "karten") {
+  if (state.view === "liste") {
+    list.className = "list";
+    list.innerHTML = items.length ? items.map(p => `
+    <div class="row plant compact" data-id="${p.id}" tabindex="0" role="button" aria-label="${esc(p.n)} Details">
+      <div class="pname">
+        <button class="star" data-star="${p.id}" aria-pressed="${state.favs.has(p.id)}" aria-label="${esc(p.n)} zu Meine Pflanzen">★</button>
+        ${icon(p)}
+        <span class="txt"><strong>${esc(p.n)}</strong><small>${statusText(p)}</small></span>
+      </div>
+    </div>`).join("") : empty;
+  } else if (state.view === "karten") {
     list.className = items.length ? "packets" : "list";
     list.innerHTML = items.length ? items.map(packetHTML).join("") : empty;
   } else {
     list.className = "list";
     list.innerHTML = head + (rows || empty);
   }
+}
+
+// Kurzstatus für die Liste: was jetzt dran ist, sonst ab wann
+function statusText(p) {
+  const m = now.getMonth() + 1, nowK = KINDS.filter(({ k }) => inMonth(windows(p, k), m));
+  const have = entriesFor(p.id).length ? `<span class="have">${entriesFor(p.id).length}× eingetragen</span> · ` : "";
+  if (nowK.length) return have + `<span class="status"><i class="sw ${nowK[0].cls}"></i>Jetzt: ${nowK.map(x => x.label).join(", ").replace(/, (?=[^,]*$)/, " und ")}</span>`;
+  const next = upcomingStarts(p, new Date(now.getFullYear(), now.getMonth(), now.getDate()))[0];
+  if (!next) return have + esc(CAT[p.c]);
+  const k = KINDS.find(x => x.k === next.items[0].k);
+  return have + `<span class="status"><i class="sw ${k.cls}"></i>Ab ${next.at.getDate() > 1 ? "Mitte " : ""}${MONTHS[next.at.getMonth()]}: ${k.label}</span>`;
 }
 
 function packetHTML(p) {
@@ -2154,7 +2215,7 @@ function heroTasks() {
   const tasks = collect(["v", "d", "p"]);
   const seen = new Set(), pick = [];
   for (const t of tasks) {
-    if (pick.length === 4) break;
+    if (pick.length === 5) break;
     if (seen.has(t.p.id)) continue;
     seen.add(t.p.id); pick.push(t);
   }
@@ -2193,13 +2254,12 @@ function renderHero() {
   document.getElementById("h-now").textContent = MONTHS[t.getMonth()];
 
   const { pick, total } = heroTasks();
-  document.getElementById("hcards").innerHTML = pick.length ? pick.map(({ p, k, w, endsNow, startsNow }) => {
+  document.getElementById("hcards").innerHTML = pick.length ? `<div class="hlist">${pick.map(({ p, k, w, endsNow, startsNow }) => {
     const kind = KINDS.find(x => x.k === k);
-    const hint = endsNow ? `Letzte Gelegenheit, bis ${endLabel(w[1])}`
-      : startsNow ? `Ab jetzt, bis ${endLabel(w[1])}` : `Noch bis ${endLabel(w[1])}`;
-    return `<button class="hcard" data-id="${p.id}">${icon(p, "lg")}
-      <span class="pill ${kind.cls}">${kind.label}</span><strong>${esc(p.n)}</strong><span class="hint">${hint}</span></button>`;
-  }).join("") + (total > pick.length ? `<a class="more" href="#monat">+ ${total - pick.length} weitere Pflanzen in der Monatsübersicht</a>` : "")
+    const hint = endsNow ? `nur noch bis ${endLabel(w[1])}` : `bis ${endLabel(w[1])}`;
+    return `<button class="hline" data-id="${p.id}">${icon(p)}
+      <span class="hrow-txt"><strong>${esc(p.n)}</strong><span class="meta"><i class="sw ${kind.cls}"></i>${kind.label} · ${hint}</span></span></button>`;
+  }).join("")}</div>` + (total > pick.length ? `<a class="more" href="#monat">Alle ${total} Pflanzen im Kalender</a>` : "")
     : `<p class="hempty">Diesen Monat gibt es nichts vorzuziehen, zu säen oder auszupflanzen. Zeit, das nächste Gartenjahr zu planen.</p>`;
 
   // Eigene Pflanzungen, die jetzt reif sind oder in den nächsten 21 Tagen reif werden
@@ -2226,10 +2286,10 @@ function renderHero() {
 
   renderMoon();
   const [n1, n2] = nextEvents(2);
-  document.getElementById("hnext").innerHTML = `<span class="label">Nächster Termin</span>
-    <div class="ev"><b class="ev-when">${relDays(n1.days)}</b>
-      <div><strong>${esc(n1.t)}</strong> <span class="meta">${dateLong(n1.date)}</span><p>${esc(n1.s)}</p></div></div>
-    ${n2 ? `<p class="ev-later">Danach: ${esc(n2.t)}, ${relDays(n2.days).replace(/^./, c => c.toLowerCase())}</p>` : ""}`;
+  document.getElementById("hnext").innerHTML = `<details class="hdet"><summary><span class="label">Nächster Termin</span>
+      <b>${esc(n1.t)}</b><span class="when">${relDays(n1.days).replace(/^In /, "in ")}</span></summary>
+    <div class="hdet-body"><p>${dateLong(n1.date)}: ${esc(n1.s)}</p>
+    ${n2 ? `<p>Danach: ${esc(n2.t)}, ${relDays(n2.days).replace(/^./, c => c.toLowerCase())}</p>` : ""}</div></details>`;
 }
 
 /* ---------- Mein Garten: Pflanzungen speichern ----------
@@ -2605,9 +2665,10 @@ function renderMoon() {
     const d = noon(new Date(today.getFullYear(), today.getMonth(), today.getDate() + i)), x = moonAt(d);
     if (x.type !== m.type) next = { d, x };
   }
-  box.innerHTML = `<span class="label">Mondkalender</span>
-    <div class="moon-today"><strong>${MOON_LABEL[m.type]}</strong> <span class="meta">· Mond ${moonPhaseText(m)}, ${m.rising ? "aufsteigend" : "absteigend"}</span></div>
-    <p class="meta">Gut für ${MOON_GOOD[m.type]}.${next ? ` Ab ${dateLong(next.d)}: ${MOON_LABEL[next.x.type]}.` : ""} Überlieferte Regel, ohne belegte Wirkung.</p>`;
+  box.innerHTML = `<details class="hdet"><summary><span class="label">Mondkalender</span>
+      <b>Heute ${MOON_LABEL[m.type]}</b><span class="meta">Mond ${moonPhaseText(m)}</span></summary>
+    <div class="hdet-body"><p>Mond ${moonPhaseText(m)}, ${m.rising ? "aufsteigend" : "absteigend"}. Gut für ${MOON_GOOD[m.type]}.${next ? ` Ab ${dateLong(next.d)}: ${MOON_LABEL[next.x.type]}.` : ""}</p>
+    <p>Überlieferte Regel, ohne belegte Wirkung.</p></div></details>`;
 }
 function moonPlantHTML(p) {
   if (!state.moon) return "";
@@ -2812,13 +2873,16 @@ function formHTML(p) {
   const pre = kinds.find(k => inMonth(windows(p, k), now.getMonth() + 1)) || kinds[kinds.length - 1] || "p";
   const opts = (kinds.length ? kinds : ["p"]).map(k => `<option value="${k}"${k === pre ? " selected" : ""}>${ART[k].label}</option>`).join("");
   const ortOpts = p.wo.map(w => `<option value="${ORT[w]}">`).join("");
-  return `<form class="plant-form" id="pform" data-plant="${p.id}">
+  return `<div class="add-row"><button class="btn primary" id="f-open" type="button">+ Eintragen</button><span class="meta" id="f-done" role="status"></span></div>
+    <form class="plant-form" id="pform" data-plant="${p.id}" hidden>
       <label>Was<select id="f-art">${opts}</select></label>
       <label>Datum<input type="date" id="f-datum" value="${todayISO()}" required></label>
-      <label>Wo<input type="text" id="f-ort" list="f-ort-list" placeholder="z. B. Hochbeet Süd"><datalist id="f-ort-list">${ortOpts}</datalist></label>
-      <label>Menge<input type="text" id="f-menge" placeholder="z. B. 3 Pflanzen, 1 Reihe"></label>
-      <label class="wide">Notiz<input type="text" id="f-notiz" placeholder="Sorte, Saatgut, Besonderheiten"></label>
-      <div class="actions"><button class="btn primary" type="submit">Eintragen</button><span class="msg" id="f-msg" role="status"></span></div>
+      <details class="more-fields"><summary>Mehr Angaben (Ort, Menge, Notiz)</summary><div class="more-grid">
+        <label>Wo<input type="text" id="f-ort" list="f-ort-list" placeholder="z. B. Hochbeet Süd"><datalist id="f-ort-list">${ortOpts}</datalist></label>
+        <label>Menge<input type="text" id="f-menge" placeholder="z. B. 3 Pflanzen, 1 Reihe"></label>
+        <label class="wide">Notiz<input type="text" id="f-notiz" placeholder="Sorte, Saatgut, Besonderheiten"></label>
+      </div></details>
+      <div class="actions"><button class="btn primary" type="submit">Speichern</button><button class="btn" id="f-cancel" type="button">Abbrechen</button><span class="msg" id="f-msg" role="status"></span></div>
     </form>`;
 }
 
@@ -2833,10 +2897,13 @@ const NB_ALIAS = {
 };
 
 // Glocke: Mitteilung, wenn das nächste Zeitfenster der Pflanze beginnt (nur in der App)
+const bellOk = p => !!Native && upcomingStarts(p).length > 0;
+function bellBtnHTML(p) {
+  return bellOk(p) ? `<button class="d-bell-btn" id="d-bell" type="button" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15z"/><path d="M10 20.5a2 2 0 0 0 4 0"/></svg></button>` : "";
+}
 function bellHTML(p) {
-  if (!Native || !upcomingStarts(p).length) return "";
+  if (!bellOk(p)) return "";
   return `<div class="bell" id="d-bell-box" data-plant="${p.id}">
-      <div><button class="btn" id="d-bell" type="button" aria-pressed="false"></button></div>
       <p class="meta" id="d-bell-hint" role="status"></p>
       <div class="confirm-box info" id="d-bell-ask" hidden>
         <p><strong>Darf Saatzeit dir Mitteilungen schicken?</strong> Nur Gartenerinnerungen, meist ein paar pro Monat, nie Werbung. Gleich fragt dein Handy, ob du das erlaubst.</p>
@@ -2853,13 +2920,14 @@ function renderBell(note) {
   const p = plantById(box.dataset.plant), next = upcomingStarts(p)[0], on = state.starts.has(p.id) && state.remind;
   const b = document.getElementById("d-bell");
   b.setAttribute("aria-pressed", String(on));
-  b.textContent = on ? "Erinnerung eingestellt" : "Erinnere mich, wenn es losgeht";
+  b.setAttribute("aria-label", on ? "Erinnerung ausschalten" : "Erinnern, wenn die Saatzeit beginnt");
+  b.title = b.getAttribute("aria-label");
   const when = next ? `${dateLong(next.at)} um 9 Uhr (${startText(next)})` : "";
   const hint = document.getElementById("d-bell-hint");
   hint.hidden = false;
   hint.textContent = note || (on
-    ? `Saatzeit meldet sich am ${when}. Nochmals tippen schaltet die Erinnerung aus.`
-    : `Mitteilung am ${when}.`);
+    ? `Erinnerung am ${when}. Die Glocke oben schaltet sie wieder aus.`
+    : `Tippe auf die Glocke oben, dann erinnert dich Saatzeit am ${when}.`);
 }
 function setBell(id, on) {
   on ? state.starts.add(id) : state.starts.delete(id);
@@ -2874,14 +2942,12 @@ async function bellClick() {
   if (perm === "granted") { setBell(id, true); setRemind(true); renderBell(); return; }
   if (perm === "denied") { renderBell(SETTINGS_HINT); return; }
   document.getElementById("d-bell-ask").hidden = false;
-  document.getElementById("d-bell").hidden = true;
   document.getElementById("d-bell-hint").hidden = true; // Die Frage ersetzt den Hinweis, sonst steht beides da
   document.getElementById("d-bell-yes").focus();
 }
 async function bellAsk(yes) {
   const id = document.getElementById("d-bell-box").dataset.plant;
   document.getElementById("d-bell-ask").hidden = true;
-  document.getElementById("d-bell").hidden = false;
   if (!yes) { renderBell(); document.getElementById("d-bell").focus(); return; }
   let perm = "denied";
   try { perm = (await Native.Notify.requestPermissions()).display; } catch (e) {}
@@ -2912,14 +2978,11 @@ function openDetail(id) {
     <div class="d-top">
       ${icon(p, "xl")}
       <div class="txt"><span class="label">${p.alt ? esc(p.alt) : CAT[p.c]}</span><h2 id="d-name">${esc(p.n)}</h2></div>
+      ${bellBtnHTML(p)}
       <button class="star" data-star="${p.id}" aria-pressed="${state.favs.has(p.id)}" aria-label="Zu Meine Pflanzen" style="font-size:1.6rem">★</button>
       <button class="close" id="close">Schliessen</button>
     </div>
     <div class="tags">${tags}</div>
-    <div class="block"><span class="label">Angepflanzt</span>
-      ${formHTML(p)}
-      <div id="d-hist" data-plant="${p.id}"></div>
-    </div>
     <div class="block"><span class="label">Wann</span>
       <div class="mticks">${MS.map((m, i) => `<span class="${i === now.getMonth() ? "cur" : ""}">${m[0]}</span>`).join("")}</div>
       ${trackHTML(p, true)}
@@ -2927,7 +2990,12 @@ function openDetail(id) {
       ${bellHTML(p)}
       ${moonPlantHTML(p)}
     </div>
+    <div class="block"><span class="label">Angepflanzt</span>
+      ${formHTML(p)}
+      <div id="d-hist" data-plant="${p.id}"></div>
+    </div>
     <div class="block"><span class="label">Wie</span>
+      ${isLichtkeimer(p) ? `<p class="keim-warn"><strong>Wichtig, Lichtkeimer:</strong> ${esc(LICHTKEIMER_TIPP)}</p>` : ""}
       <p>${esc(p.wie)}</p>
       <div class="facts">
         <div class="fact"><span class="label">Saattiefe</span><b>${esc(p.tiefe)}</b></div>
@@ -2939,12 +3007,11 @@ function openDetail(id) {
     <div class="block"><span class="label">Wo</span>
       <p><strong>${SUN[p.sun]}.</strong> Geeignet für ${p.wo.map(w => ORT[w]).join(", ")}.</p>
     </div>
-    <div class="block"><span class="label">Tipps</span>
-      ${isLichtkeimer(p) ? `<p class="keim-warn"><strong>Wichtig, Lichtkeimer:</strong> ${esc(LICHTKEIMER_TIPP)}</p>` : ""}
-      <ul>${p.tipps.map(t => `<li>${esc(t)}</li>`).join("")}</ul></div>
-    <div class="block"><span class="label">Nachbarn im Beet</span>
+    <details class="block fold"><summary class="label">Tipps (${p.tipps.length})</summary>
+      <ul>${p.tipps.map(t => `<li>${esc(t)}</li>`).join("")}</ul></details>
+    <details class="block fold"><summary class="label">Nachbarn im Beet</summary>
       <div class="nb"><div><h3>Gute Nachbarn</h3>${nb(p.gut)}</div><div><h3>Lieber nicht daneben</h3>${nb(p.schlecht)}</div></div>
-    </div>`;
+    </details>`;
   d.hidden = false;
   document.getElementById("scrim").hidden = false;
   d.scrollTop = 0;
@@ -2985,6 +3052,14 @@ document.addEventListener("click", e => {
   }
   if (e.target.closest("#export")) { exportJSON().catch(() => {}); return; }
   if (e.target.closest("#d-bell")) { bellClick(); return; }
+  if (e.target.closest("#f-open") || e.target.closest("#f-cancel")) {
+    const open = !!e.target.closest("#f-open");
+    document.getElementById("pform").hidden = !open;
+    document.getElementById("f-open").hidden = open;
+    document.getElementById("f-done").textContent = "";
+    if (open) document.getElementById("f-art").focus();
+    return;
+  }
   if (e.target.closest("#d-bell-yes")) { bellAsk(true); return; }
   if (e.target.closest("#d-bell-no")) { bellAsk(false); return; }
   const star = e.target.closest("[data-star]");
@@ -3010,8 +3085,10 @@ document.addEventListener("submit", async e => {
   btn.disabled = true; msg.textContent = "";
   try {
     await addEntry(entry);
-    msg.textContent = "Eingetragen.";
     ["f-menge", "f-notiz"].forEach(id => { document.getElementById(id).value = ""; });
+    f.hidden = true;
+    document.getElementById("f-open").hidden = false;
+    document.getElementById("f-done").textContent = "Eingetragen.";
   } catch (err) {
     msg.textContent = err && err.code === "quota_exceeded"
       ? "Die Datenbank ist voll. Lösche alte Einträge und versuche es nochmals."
