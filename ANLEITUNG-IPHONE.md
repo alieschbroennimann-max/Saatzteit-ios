@@ -6,7 +6,7 @@ erneut aufspielen. Deine Einträge bleiben dabei erhalten.
 | | Weg A: direkt mit Xcode | Weg B: Codemagic und Sideloadly |
 |---|---|---|
 | Gebaut wird | auf deinem MacBook | in der Cloud |
-| Braucht | Xcode (etwa 40 GB freier Platz), CocoaPods | GitHub, Codemagic, Sideloadly |
+| Braucht | Xcode (etwa 40 GB freier Platz), Node.js, CocoaPods | GitHub, Codemagic, Sideloadly |
 | Gut, wenn | genug Platz frei ist, du oft testest | wenig Platz frei ist |
 
 Für beide Wege einmal am iPhone: **Entwicklermodus einschalten** (Einstellungen → Datenschutz & Sicherheit →
@@ -22,9 +22,10 @@ Der Schalter erscheint eventuell erst, nachdem das iPhone einmal mit Xcode oder 
 1. **Platz schaffen:** Xcode braucht etwa 40 GB. Freien Platz zeigt  → Systemeinstellungen → Allgemein → Speicher.
 2. **Xcode** aus dem **Mac App Store** installieren. Einmal öffnen, die Lizenz bestätigen und, wenn Xcode danach
    fragt, die Komponente **iOS** herunterladen.
-3. **Node.js** (LTS) von [nodejs.org](https://nodejs.org) installieren, falls noch nicht geschehen.
+3. **Node.js** (Version 22 oder neuer) von [nodejs.org](https://nodejs.org) installieren, falls noch nicht geschehen.
 4. **Homebrew** installieren: Den Befehl von [brew.sh](https://brew.sh) im Terminal ausführen.
-5. **CocoaPods** installieren, im Terminal:
+5. **CocoaPods** installieren. Saatzeit braucht davon nur das Hilfsprogramm, mit dem das Einrichtungsskript das
+   Xcode-Projekt anpasst. Im Terminal:
 
    ```
    brew install cocoapods
@@ -44,7 +45,9 @@ npx cap open ios
 ```
 
 `npm run ios:prepare` erzeugt den Ordner `ios/` mit dem Xcode-Projekt und die Icons, trägt das Datenschutz-Manifest
-ein und setzt iOS 15 als Mindestversion (Xcode 27 baut nicht mehr für iOS 14). Das dauert ein bis zwei Minuten.
+ein und stellt auf «nur iPhone» mit iOS 15 als Mindestversion. Das dauert ein bis zwei Minuten.
+Liegt im Ordner `saatzeit-ios` eine Datei `ios-team.txt` mit deiner Team-ID, ist das Team schon eingetragen und
+Schritt 2 unten entfällt. Die Datei geht nicht auf GitHub.
 
 ### In Xcode
 

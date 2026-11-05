@@ -1,6 +1,6 @@
 # Saatzeit iOS – Hinweise für Claude
 
-Dieser Ordner ist der iPhone-Teil von Saatzeit (Capacitor 7) und entspricht dem GitHub-Repo
+Dieser Ordner ist der iPhone-Teil von Saatzeit (Capacitor 8) und entspricht dem GitHub-Repo
 `alieschbroennimann-max/Saatzteit-ios`. Das ganze Projekt liegt im übergeordneten Ordner `Saatzeit`.
 Dort steht in der `CLAUDE.md` alles zu Aufbau und Arbeitsweise.
 

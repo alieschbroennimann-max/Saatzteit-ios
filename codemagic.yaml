@@ -7,7 +7,7 @@ workflows:
     instance_type: mac_mini_m2
     max_build_duration: 45
     environment:
-      node: 20
+      node: 22
       java: 21
     scripts:
       - name: Pakete installieren
@@ -35,9 +35,8 @@ workflows:
     instance_type: mac_mini_m2
     max_build_duration: 45
     environment:
-      node: 20
+      node: 22
       xcode: latest
-      cocoapods: default
     scripts:
       - name: Pakete installieren
         script: npm install
@@ -50,7 +49,7 @@ workflows:
           npx cap sync ios
       - name: App-Store-Angaben eintragen
         script: |
-          # Datenschutz-Manifest ins Xcode-Projekt, Info.plist: ITSAppUsesNonExemptEncryption = NO
+          # Datenschutz-Manifest, nur iPhone, Versionsnummer, Info.plist: ITSAppUsesNonExemptEncryption = NO
           ruby -e 'require "xcodeproj"' 2>/dev/null || gem install xcodeproj --no-document
           ruby scripts/ios-setup.rb
       - name: App bauen (ohne Signatur)

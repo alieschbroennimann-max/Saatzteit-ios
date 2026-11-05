@@ -47,8 +47,9 @@ try {
 (async () => {
   const C = window.Capacitor;
   if (!C || !C.isNativePlatform || !C.isNativePlatform() || typeof C.registerPlugin !== "function") return;
-  const Prefs = C.registerPlugin("Preferences");
-  const keys = ["saatzeit.pflanzungen", "saatzeit.favs", "saatzeit.shift", "saatzeit.view", "saatzeit.erinnerungen", "saatzeit.zustimmung", "saatzeit.eigene", "saatzeit.theme", "saatzeit.schrift", "saatzeit.start"];
+  // Einmal anmelden und merken: Capacitor warnt, wenn ein Plugin zweimal angemeldet wird (siehe Native weiter unten)
+  const Prefs = window.SAATZEIT_PREFS = C.registerPlugin("Preferences");
+  const keys = ["saatzeit.pflanzungen", "saatzeit.favs", "saatzeit.shift", "saatzeit.view", "saatzeit.erinnerungen", "saatzeit.zustimmung", "saatzeit.eigene", "saatzeit.theme", "saatzeit.schrift", "saatzeit.start", "saatzeit.push", "saatzeit.mond"];
   let restored = false;
   for (const k of keys) {
     if (localStorage.getItem(k) !== null) continue;
@@ -159,37 +160,41 @@ button:focus-visible, select:focus-visible, input:focus-visible { outline: 2px s
 
 /* Kopf */
 .topbar { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; }
-.brand { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
-.brand h1 a { color: inherit; text-decoration: none; }
-.brand h1 span { color: var(--season-ink); }
-.intro { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px 24px; }
-.intro p { margin: 0; color: var(--muted); max-width: 560px; }
+.brand { font-size: 1.6rem; }
+.brand a { color: inherit; text-decoration: none; }
+.brand span { color: var(--season-ink); }
 .settings { display: flex; flex-direction: column; gap: 6px; min-width: 0; max-width: 100%; }
 .settings select { max-width: 100%; } /* lange Lage-Namen bei grosser Schrift nicht breiter als der Bildschirm */
 
-/* Menü */
-.menu { position: relative; flex: none; }
-.menu-btn {
-  display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 8px 14px 8px 18px;
-  border: 1px solid var(--line); background: var(--surface); border-radius: 999px; font-weight: 700;
+/* Leiste unten */
+.tabbar {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 18;
+  display: grid; grid-template-columns: repeat(4, 1fr);
+  padding: 6px max(8px, env(safe-area-inset-left, 0px), calc((100% - 560px) / 2)) calc(6px + env(safe-area-inset-bottom, 0px));
+  background: color-mix(in oklab, var(--bg) 88%, transparent); border-top: 1px solid var(--line);
+  -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
 }
-.menu-btn:hover { border-color: var(--season); }
-.menu-btn svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
-@media (prefers-reduced-motion: no-preference) { .menu-btn svg { transition: transform .15s ease; } }
-.menu-btn[aria-expanded="true"] svg { transform: rotate(180deg); }
-.menu-list {
-  position: absolute; right: 0; top: calc(100% + 8px); z-index: 15; min-width: 250px;
-  display: flex; flex-direction: column; padding: 6px;
-  background: var(--surface); border: 1px solid var(--line); border-radius: 16px; box-shadow: var(--shadow);
+.tabbar a {
+  display: flex; flex-direction: column; align-items: center; gap: 3px; min-height: 48px; padding: 4px 2px;
+  color: var(--muted); text-decoration: none; font-size: calc(11px * var(--ts, 1)); font-weight: 600; text-align: center; line-height: 1.15;
+  min-width: 0;
+  border-radius: 10px;
 }
-.menu-list a {
-  display: flex; align-items: center; gap: 12px; min-height: 46px; padding: 10px 12px; border-radius: 10px;
-  color: var(--fg); text-decoration: none; font-weight: 500;
-}
-.menu-list a:hover, .menu-list a:focus-visible { background: var(--surface-2); outline: none; }
-.menu-list a[aria-current="page"] { background: var(--season-soft); color: var(--season-ink); font-weight: 700; }
-.menu-list svg { width: 22px; height: 22px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
-.menu-list hr { border: 0; border-top: 1px solid var(--line); margin: 4px 8px; }
+.tabbar a:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+.tabbar a[aria-current="page"] { color: var(--season-ink); }
+.tabbar svg { width: 25px; height: 25px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.tabbar a[data-tab="mehr"] svg { fill: currentColor; stroke: none; }
+
+.wrap { padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px)); }
+/* Mehr */
+.more-list { display: flex; flex-direction: column; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; }
+.more-list a { display: flex; align-items: center; gap: 14px; min-height: 52px; padding: 10px 16px; color: var(--fg); text-decoration: none; font-weight: 600; }
+.more-list a + a { border-top: 1px solid var(--line); }
+.more-list a span { flex: 1; }
+.more-list svg { width: 22px; height: 22px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; color: var(--muted); }
+.more-list .chev { width: 18px; height: 18px; }
+.back { align-self: flex-start; display: inline-flex; align-items: center; min-height: 44px; color: var(--accent); text-decoration: none; font-weight: 600; margin-bottom: -8px; }
+.cal-foot { margin-top: -16px; }
 
 /* Seiten */
 .view { display: flex; flex-direction: column; gap: 40px; }
@@ -465,6 +470,16 @@ html.locked, html.locked body { overflow: hidden; }
 #remind[aria-pressed="true"], #d-bell[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); font-weight: 700; }
 .bell { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
 .bell .meta { margin: 0; }
+.push-list { display: flex; flex-direction: column; gap: 4px; }
+.push-list .check { align-items: flex-start; }
+.push-list .check input { flex: none; margin-top: 2px; }
+.push-list .check span { display: flex; flex-direction: column; }
+.next-step { flex-basis: 100%; color: var(--accent); font-size: .88rem; }
+.moon-line { margin: 12px 0 0; }
+#hmoon p { margin: 0; }
+.moon-today { font-size: 1.05rem; }
+#mond { display: flex; max-width: 260px; }
+#mond button { flex: 1 1 0; }
 .btn {
   border: 1px solid var(--line); background: var(--surface); border-radius: 8px; padding: 7px 12px; font-size: .88rem;
 }
@@ -485,6 +500,10 @@ html.locked, html.locked body { overflow: hidden; }
 .plant-form { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 14px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
 .plant-form label { display: flex; flex-direction: column; gap: 4px; font-size: .85rem; color: var(--muted); }
 .plant-form input, .plant-form select { font: inherit; color: var(--fg); background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 7px 9px; width: 100%; }
+/* iOS gibt Datumsfeldern eine eigene Mindestbreite und Höhe: auf die Form der anderen Felder bringen */
+input[type="date"] { -webkit-appearance: none; appearance: none; display: block; min-width: 0; max-width: 100%; min-height: 2.4em; line-height: 1.3; }
+input[type="date"]::-webkit-date-and-time-value { text-align: left; margin: 0; }
+.plant-form select { min-height: 2.4em; }
 .plant-form .wide { grid-column: 1 / -1; }
 .plant-form .actions { grid-column: 1 / -1; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 .plant-form .msg { font-size: .85rem; color: var(--c-pfl); }
@@ -551,7 +570,6 @@ input, select, textarea { font-size: max(16px, 1rem) !important; }
   .entry { grid-template-columns: auto minmax(0, 1fr); align-items: start; }
   .entry .x { grid-column: 2; justify-self: start; }
   .topbar { align-items: center; }
-  .menu-list { min-width: min(280px, calc(100vw - 32px)); }
   .season-art { width: 140px; height: 140px; opacity: .22; }
   .ev { flex-direction: column; gap: 4px; }
   .hcard { display: grid; grid-template-columns: auto minmax(0, 1fr); column-gap: 14px; row-gap: 2px; align-items: center; padding: 12px 14px; }
@@ -568,42 +586,11 @@ input, select, textarea { font-size: max(16px, 1rem) !important; }
 
 <div class="wrap">
   <header class="topbar">
-    <div class="brand">
-      <span class="label">Pflanzkalender rund ums Haus</span>
-      <h1><a href="#home">Saat<span>zeit</span></a></h1>
-    </div>
-    <nav class="menu" aria-label="Hauptmenü">
-      <button class="menu-btn" id="menu-btn" aria-haspopup="true" aria-expanded="false" aria-controls="menu-list">
-        <span id="menu-current">Home</span>
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
-      </button>
-      <div class="menu-list" id="menu-list" role="menu" hidden>
-        <a role="menuitem" href="#home" data-nav="home"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 11l8-7 8 7"/><path d="M6 10v10h12V10"/><path d="M10 20v-6h4v6"/></svg>Home</a>
-        <a role="menuitem" href="#garten" data-nav="garten"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21V9"/><path d="M12 14c-3.2 0-5.5-2-5.5-5.2 3.2 0 5.5 2 5.5 5.2z"/><path d="M12 11c3.2 0 5.5-2 5.5-5.2-3.2 0-5.5 2-5.5 5.2z"/><path d="M5 21h14"/></svg>Meine Pflanzen</a>
-        <a role="menuitem" href="#einstellungen" data-nav="einstellungen"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1"/></svg>Einstellungen</a>
-        <hr>
-        <a role="menuitem" href="#hilfe" data-nav="hilfe"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6v.6"/><path d="M12 17.5v.01"/></svg>Hilfe</a>
-        <a role="menuitem" href="#faq" data-nav="faq"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v11H9l-5 4z"/><path d="M8 9h8M8 12h5"/></svg>Fragen &amp; Antworten</a>
-        <a role="menuitem" href="#impressum" data-nav="impressum"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h9l3 3v15H6z"/><path d="M9 9h6M9 13h6M9 17h4"/></svg>Impressum</a>
-      </div>
-    </nav>
+    <h1 class="brand"><a href="#home">Saat<span>zeit</span></a></h1>
   </header>
 
   <!-- Home -->
   <div class="view" data-view="home">
-  <div class="intro">
-    <p>Was du wann, wie und wo säen, pflanzen und ernten kannst. Tippe auf eine Pflanze für alle Details.</p>
-    <div class="settings">
-      <label class="label" for="klima">Lage</label>
-      <select id="klima">
-        <option value="-1">Mild (Genfersee, Basel, Tessin)</option>
-        <option value="0" selected>Mittelland (400–650 m)</option>
-        <option value="1">Voralpen oder kühle Lage (650–900 m)</option>
-        <option value="2">Höhenlage (über 900 m)</option>
-      </select>
-    </div>
-  </div>
-
   <section class="hero" aria-labelledby="h-now-title">
     <svg class="season-art" id="season-art" viewBox="0 0 120 120" aria-hidden="true"></svg>
     <div class="hero-head">
@@ -627,9 +614,14 @@ input, select, textarea { font-size: max(16px, 1rem) !important; }
     </div>
     <div class="hero-foot">
       <div class="hbox" id="hnext"></div>
+      <div class="hbox" id="hmoon" hidden></div>
     </div>
   </section>
 
+  </div>
+
+  <!-- Kalender: Monatsübersicht und alle Pflanzen -->
+  <div class="view" data-view="kalender" hidden>
   <section aria-labelledby="h-month" id="monat">
     <div class="month-head">
       <h2 id="h-month">Monatsübersicht: <span id="mname">November</span></h2>
@@ -672,6 +664,23 @@ input, select, textarea { font-size: max(16px, 1rem) !important; }
     </div>
     <div class="list" id="list"></div>
   </section>
+  <footer class="cal-foot">
+    Richtwerte für die Schweiz bzw. Mitteleuropa. Frostempfindliches meist erst nach den Eisheiligen (11.–15. Mai) ins Freie, und auch dann mit Blick auf den Wetterbericht. Die Lage (unter Einstellungen) verschiebt Frühlingstermine nach hinten und Herbsttermine nach vorne, jeweils um etwa zwei Wochen pro Stufe. Mehr dazu unter <a href="#hilfe">Hilfe</a> und <a href="#faq">Fragen &amp; Antworten</a>.
+  </footer>
+  </div>
+
+  <!-- Mehr -->
+  <div class="view" data-view="mehr" hidden>
+    <section class="page-head">
+      <h2 class="page-title">Mehr</h2>
+    </section>
+    <nav class="more-list" aria-label="Weitere Seiten">
+      <a href="#einstellungen"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1"/></svg><span>Einstellungen</span><svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></a>
+      <a href="#hilfe"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6v.6"/><path d="M12 17.5v.01"/></svg><span>Hilfe</span><svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></a>
+      <a href="#faq"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v11H9l-5 4z"/><path d="M8 9h8M8 12h5"/></svg><span>Fragen &amp; Antworten</span><svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></a>
+      <a href="#impressum"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h9l3 3v15H6z"/><path d="M9 9h6M9 13h6M9 17h4"/></svg><span>Impressum</span><svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></a>
+    </nav>
+    <p class="meta app-version">Saatzeit</p>
   </div>
 
   <!-- Meine Pflanzen -->
@@ -710,7 +719,7 @@ input, select, textarea { font-size: max(16px, 1rem) !important; }
 
     <section class="sub" id="remind-sec" aria-labelledby="h-remind" hidden>
       <h3 id="h-remind">Erinnerungen</h3>
-      <p class="meta">Saatzeit meldet sich am Vorabend wichtiger Gartentermine, wenn eine deiner Pflanzungen erntereif wird, und eine Woche bevor die Zeit für eine markierte Pflanze abläuft. Auf der Seite einer Pflanze kannst du dich ausserdem an den Beginn ihrer Saatzeit erinnern lassen.</p>
+      <p class="meta">Saatzeit meldet sich am Vorabend wichtiger Gartentermine, wenn eine deiner Pflanzungen erntereif wird, und eine Woche bevor die Zeit für eine markierte Pflanze abläuft. Auf der Seite einer Pflanze kannst du dich ausserdem an den Beginn ihrer Saatzeit erinnern lassen. Welche Mitteilungen du bekommst, wählst du unter <a href="#einstellungen">Einstellungen</a>.</p>
       <div><button class="btn" id="remind" aria-pressed="false">Erinnerungen: aus</button></div>
       <div class="confirm-box info" id="remind-ask" hidden>
         <p><strong>Darf Saatzeit dir Mitteilungen schicken?</strong> Nur Gartenerinnerungen, meist ein paar pro Monat, nie Werbung. Gleich fragt dein Handy, ob du das erlaubst.</p>
@@ -741,6 +750,19 @@ input, select, textarea { font-size: max(16px, 1rem) !important; }
       <h2 class="page-title">Einstellungen</h2>
     </section>
 
+    <section class="sub" aria-labelledby="h-lage">
+      <h3 id="h-lage">Lage</h3>
+      <p class="meta">In kühleren Lagen beginnt der Frühling später und der Herbst früher. Saatzeit verschiebt die Termine um etwa zwei Wochen pro Stufe.</p>
+      <div class="settings">
+        <select id="klima" aria-labelledby="h-lage">
+          <option value="-1">Mild (Genfersee, Basel, Tessin)</option>
+          <option value="0" selected>Mittelland (400–650 m)</option>
+          <option value="1">Voralpen oder kühle Lage (650–900 m)</option>
+          <option value="2">Höhenlage (über 900 m)</option>
+        </select>
+      </div>
+    </section>
+
     <section class="sub" aria-labelledby="h-theme">
       <h3 id="h-theme">Darstellung</h3>
       <div class="seg" role="group" aria-label="Darstellung" id="theme">
@@ -756,6 +778,28 @@ input, select, textarea { font-size: max(16px, 1rem) !important; }
         <button data-v="normal" aria-pressed="true">Normal</button>
         <button data-v="gross" aria-pressed="false" style="font-size:1.05em">Gross</button>
         <button data-v="sehrgross" aria-pressed="false" style="font-size:1.15em">Sehr gross</button>
+      </div>
+    </section>
+
+    <section class="sub" id="push-sec" aria-labelledby="h-push" hidden>
+      <h3 id="h-push">Mitteilungen</h3>
+      <p class="meta" id="push-state"></p>
+      <div class="push-list" id="push-list">
+        <label class="check"><input type="checkbox" data-push="start"><span><strong>Was wann säen und pflanzen</strong><span class="meta">Am Morgen, an dem die Saatzeit beginnt. Für Pflanzen, bei denen du auf der Pflanzenseite die Erinnerung eingestellt hast.</span></span></label>
+        <label class="check"><input type="checkbox" data-push="ablauf"><span><strong>Letzte Woche zum Säen oder Pflanzen</strong><span class="meta">Für markierte Pflanzen (★), eine Woche bevor das Zeitfenster endet.</span></span></label>
+        <label class="check"><input type="checkbox" data-push="folge"><span><strong>Folgeschritte nach dem Vorziehen</strong><span class="meta">Pikieren, abhärten und auspflanzen, wenn du «Drinnen vorgezogen» eingetragen hast.</span></span></label>
+        <label class="check"><input type="checkbox" data-push="ernte"><span><strong>Erntereif</strong><span class="meta">Am Morgen, an dem eine deiner Pflanzungen erntereif wird.</span></span></label>
+        <label class="check"><input type="checkbox" data-push="termine"><span><strong>Gartentermine</strong><span class="meta">Am Vorabend, zum Beispiel vor den Eisheiligen.</span></span></label>
+        <label class="check"><input type="checkbox" data-push="monat"><span><strong>Monatsüberblick</strong><span class="meta">Am Monatsanfang: wie viele Pflanzen jetzt dran sind.</span></span></label>
+      </div>
+    </section>
+
+    <section class="sub" aria-labelledby="h-mond">
+      <h3 id="h-mond">Mondkalender</h3>
+      <p class="meta">Zeigt nach überlieferter Gärtnertradition, ob ein Wurzel-, Blatt-, Blüten- oder Fruchttag ist und ob der Mond zu- oder abnimmt. Eine Wirkung auf das Wachstum ist wissenschaftlich nicht belegt. Saatzeit berechnet den Mondstand selbst, vereinfacht und ohne Internet.</p>
+      <div class="seg" role="group" aria-label="Mondkalender" id="mond">
+        <button data-v="aus" aria-pressed="true">Aus</button>
+        <button data-v="an" aria-pressed="false">An</button>
       </div>
     </section>
 
@@ -834,8 +878,8 @@ input, select, textarea { font-size: max(16px, 1rem) !important; }
     <div class="prose">
       <h3>So fängst du an</h3>
       <ol>
-        <li><strong>Lage wählen.</strong> Oben auf der Startseite stellst du ein, wie hoch oder mild du wohnst. Alle Termine passen sich an.</li>
-        <li><strong>Schauen, was dran ist.</strong> «Jetzt im …» zeigt die wichtigsten Arbeiten des Monats und den nächsten Gartentermin.</li>
+        <li><strong>Lage wählen.</strong> Unter «Mehr → Einstellungen» stellst du ein, wie hoch oder mild du wohnst. Alle Termine passen sich an.</li>
+        <li><strong>Schauen, was dran ist.</strong> «Heute» zeigt die wichtigsten Arbeiten des Monats und den nächsten Gartentermin. Unter «Kalender» findest du jeden Monat und alle Pflanzen.</li>
         <li><strong>Pflanze öffnen.</strong> Tippe auf eine Pflanze. Du siehst, wann, wie und wo sie wächst, dazu Tipps und gute Nachbarn.</li>
         <li><strong>Eintragen.</strong> Hast du etwas gesät oder gepflanzt, trägst du es in der Pflanze unter «Angepflanzt» ein.</li>
         <li><strong>Wachsen sehen.</strong> Unter «Meine Pflanzen» siehst du, wann deine Pflanzungen erntereif sind.</li>
@@ -851,10 +895,10 @@ input, select, textarea { font-size: max(16px, 1rem) !important; }
       <p>Der rote Strich in den Jahresbalken markiert das heutige Datum.</p>
 
       <h3>Pflanzen finden</h3>
-      <p>Unter «Alle Pflanzen» suchst du nach Namen und filterst nach Kräutern, Gemüse, Früchten oder Blumen und nach Standort. Mit «Tütchen» wechselst du von den Jahresbalken zu Karten.</p>
+      <p>Im «Kalender» unter «Alle Pflanzen» suchst du nach Namen und filterst nach Kräutern, Gemüse, Früchten oder Blumen und nach Standort. Mit «Tütchen» wechselst du von den Jahresbalken zu Karten.</p>
 
       <h3>Markieren mit ★</h3>
-      <p>Tippe auf den Stern neben einer Pflanze. Markierte Pflanzen erscheinen auf der Startseite zuerst, du kannst die Liste mit «★ Meine» auf sie beschränken, und in der App auf dem Handy erinnert dich Saatzeit, kurz bevor ihre Zeit abläuft.</p>
+      <p>Tippe auf den Stern neben einer Pflanze. Markierte Pflanzen erscheinen unter «Heute» zuerst, du kannst die Liste mit «★ Meine» auf sie beschränken, und in der App auf dem Handy erinnert dich Saatzeit, kurz bevor ihre Zeit abläuft.</p>
 
       <h3>Einträge löschen</h3>
       <p>Unter «Meine Pflanzen» oder in der Pflanze selbst auf «Löschen» tippen und nochmals bestätigen.</p>
@@ -863,7 +907,7 @@ input, select, textarea { font-size: max(16px, 1rem) !important; }
       <p>Unter «Meine Pflanzen» legst du mit «Sichern» eine Kopie deiner Einträge ab und holst sie mit «Wiederherstellen» zurück.</p>
 
       <h3>Einstellungen</h3>
-      <p>Im Menü unter «Einstellungen» wählst du hellen oder dunklen Modus und eine grössere Schrift, erfasst eigene Pflanzen und kannst die App zurücksetzen.</p>
+      <p>Unter «Mehr → Einstellungen» wählst du deine Lage, hellen oder dunklen Modus und eine grössere Schrift, bestimmst die Mitteilungen, schaltest den Mondkalender ein, erfasst eigene Pflanzen und kannst die App zurücksetzen.</p>
 
       <p>Noch Fragen? Schau unter <a href="#faq">Fragen &amp; Antworten</a>.</p>
     </div>
@@ -885,7 +929,9 @@ input, select, textarea { font-size: max(16px, 1rem) !important; }
       <details><summary>Wo werden meine Daten gespeichert?</summary><div><p>In der App und im Browser nur auf deinem Gerät. Saatzeit hat kein Konto und schickt deine Einträge nirgends hin.<span class="cloud-only" hidden> Nutzt du einen gemeinsamen Garten mit Gartencode, liegen die Einträge zusätzlich online, damit alle mit demselben Code sie sehen.</span></p></div></details>
       <details><summary>Was passiert, wenn ich die App lösche?</summary><div><p>Dann sind auch deine Einträge auf dem Gerät weg. Lege vorher unter «Meine Pflanzen» mit «Sichern» eine Kopie ab.</p></div></details>
       <details><summary>Wie nehme ich meine Einträge auf ein neues Handy mit?</summary><div><p>Auf dem alten Handy unter «Meine Pflanzen» auf «Sichern» tippen und die Datei in iCloud Drive oder Google Drive ablegen, oder sie dir selbst per Mail schicken. Auf dem neuen Handy auf «Wiederherstellen» tippen und die Datei auswählen.</p></div></details>
-      <details><summary>Warum bekomme ich keine Erinnerungen?</summary><div><p>Prüfe unter «Meine Pflanzen», ob die Erinnerungen eingeschaltet sind, und in den Einstellungen deines Handys unter Mitteilungen bzw. Benachrichtigungen → Saatzeit, ob sie erlaubt sind. Auf Android-Handys kann zusätzlich das Akkusparen Erinnerungen verhindern: Erlaube Saatzeit in den Akku-Einstellungen die Hintergrundaktivität. Erinnerungen gibt es nur in der App, nicht im Browser.</p></div></details>
+      <details><summary>Warum bekomme ich keine Erinnerungen?</summary><div><p>Prüfe unter «Meine Pflanzen», ob die Erinnerungen eingeschaltet sind, unter «Einstellungen → Mitteilungen», ob die gewünschte Art ausgewählt ist, und in den Einstellungen deines Handys unter Mitteilungen bzw. Benachrichtigungen → Saatzeit, ob sie erlaubt sind. Auf Android-Handys kann zusätzlich das Akkusparen Erinnerungen verhindern: Erlaube Saatzeit in den Akku-Einstellungen die Hintergrundaktivität. Erinnerungen gibt es nur in der App, nicht im Browser.</p></div></details>
+      <details><summary>Was sind die Folgeschritte?</summary><div><p>Trägst du eine Pflanze als «Drinnen vorgezogen» ein, rechnet Saatzeit die nächsten Schritte aus: nach etwa drei Wochen pikieren, eine Woche vor dem Auspflanzen abhärten und auspflanzen, sobald das Zeitfenster beginnt. Du siehst den nächsten Schritt auf der Seite der Pflanze unter «Angepflanzt». In der App kommt auf Wunsch eine Mitteilung dazu. Die Zeitpunkte sind Faustregeln: Schau auf deine Pflanzen und ins Wetter.</p></div></details>
+      <details><summary>Wie funktioniert der Mondkalender?</summary><div><p>Viele Gärtnerinnen und Gärtner richten sich nach dem Mond: An Wurzeltagen säen sie Rüebli und Kartoffeln, an Blatttagen Salat, an Blütentagen Blumen und an Fruchttagen Tomaten und Bohnen. Eine Wirkung ist wissenschaftlich nicht belegt. Saatzeit zeigt diese Tradition auf Wunsch an, unter «Einstellungen → Mondkalender». Den Mondstand berechnet Saatzeit selbst und vereinfacht, darum kann ein Tag an der Grenze von gedruckten Mondkalendern abweichen.</p></div></details>
       <details><summary>Kann ich eigene Pflanzen hinzufügen?</summary><div><p>Ja. Unter <a href="#einstellungen">Einstellungen</a> → «Eigene Pflanzen» erfasst du Name, Standort und die Monate zum Vorziehen, Säen, Auspflanzen und Ernten. Die Pflanze erscheint danach überall wie die eingebauten. Soll eine Pflanze fest in Saatzeit aufgenommen werden, <a href="mailto:aliesch.broennimann@outlook.com?subject=Saatzeit%3A%20Pflanzenwunsch">schreib eine E-Mail</a>.</p></div></details>
       <details><summary>Gibt es einen dunklen Modus?</summary><div><p>Ja. Unter <a href="#einstellungen">Einstellungen</a> → «Darstellung» wählst du «Hell», «Dunkel» oder «Wie das Gerät». Bei «Wie das Gerät» wechselt Saatzeit automatisch mit deinem Handy.</p></div></details>
       <details><summary>Wie fange ich ganz von vorne an?</summary><div><p>Unter <a href="#einstellungen">Einstellungen</a> → «App zurücksetzen». Das löscht alle Einträge, eigenen Pflanzen, Markierungen und Einstellungen auf diesem Gerät. Lege vorher eine Sicherung an, wenn du etwas behalten willst.</p></div></details>
@@ -920,10 +966,14 @@ input, select, textarea { font-size: max(16px, 1rem) !important; }
     </div>
   </div>
 
-  <footer>
-    Richtwerte für die Schweiz bzw. Mitteleuropa. Frostempfindliches meist erst nach den Eisheiligen (11.–15. Mai) ins Freie, und auch dann mit Blick auf den Wetterbericht. Die Lage-Einstellung verschiebt Frühlingstermine nach hinten und Herbsttermine nach vorne, jeweils um etwa zwei Wochen pro Stufe. Mehr dazu unter <a href="#hilfe">Hilfe</a> und <a href="#faq">Fragen &amp; Antworten</a>.
-  </footer>
 </div>
+
+<nav class="tabbar" aria-label="Hauptnavigation">
+  <a href="#home" data-tab="home"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 11l8-7 8 7"/><path d="M6 10v10h12V10"/><path d="M10 20v-6h4v6"/></svg><span>Heute</span></a>
+  <a href="#kalender" data-tab="kalender"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/><path d="M8 14h2M14 14h2M8 17h2"/></svg><span>Kalender</span></a>
+  <a href="#garten" data-tab="garten"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21V9"/><path d="M12 14c-3.2 0-5.5-2-5.5-5.2 3.2 0 5.5 2 5.5 5.2z"/><path d="M12 11c3.2 0 5.5-2 5.5-5.2-3.2 0-5.5 2-5.5 5.2z"/><path d="M5 21h14"/></svg><span>Meine Pflanzen</span></a>
+  <a href="#mehr" data-tab="mehr"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></svg><span>Mehr</span></a>
+</nav>
 
 <!-- Zustimmung beim ersten Öffnen. Ohne Zustimmung bleibt die App gesperrt. -->
 <div class="consent" id="consent" role="dialog" aria-modal="true" aria-labelledby="consent-title" hidden>
@@ -1166,7 +1216,7 @@ const PLANTS = [
     tipps:["Leicht bitter: 2 Wochen vor der Ernte zusammenbinden, das bleicht das Herz und macht es milder.","Verträgt leichten Frost.","Nur bei trockenem Wetter zusammenbinden, sonst fault sie."],
     gut:["Lauch","Fenchel"], schlecht:[] },
   { id:"zuckerhut", n:"Zuckerhut", c:"g", sun:"sonne", wo:["beet"],
-    d:[[11,13]], p:[[13,14]], e:[[19,23]],
+    d:[[12,13]], p:[[13,14]], e:[[19,23]],
     wie:"Mitte Juni bis Anfang Juli direkt säen. Robuster Wintersalat.",
     tiefe:"0,5–1 cm", abstand:"30 cm, Reihen 35 cm", keim:"5–10 Tage", boden:"Humos, tiefgründig",
     tipps:["Verträgt Frost bis etwa −8 °C.","Kühl und dunkel gelagert hält er wochenlang.","Fein geschnitten und mit warmem Dressing wird er milder."],
@@ -1190,7 +1240,7 @@ const PLANTS = [
     tipps:["Ernten, wenn das Laub gelb wird und umfällt.","Trocken und luftig gelagert halten sie bis ins Frühjahr.","Milder und feiner als Zwiebeln."],
     gut:["Rüebli","Erdbeeren"], schlecht:["Buschbohnen","Erbsen"] },
   { id:"postelein", n:"Winterportulak", alt:"Postelein", c:"g", sun:"halb", wo:["beet","topf","balkon"],
-    d:[[16,19]], e:[[20,24],[1,8]],
+    d:[[16,18]], e:[[20,24],[1,8]],
     wie:"Von Mitte August bis Ende September breitwürfig säen. Wächst bei kühlen Temperaturen.",
     tiefe:"Nur andrücken (Lichtkeimer)", abstand:"Breitwürfig oder Reihen 15 cm", keim:"1–2 Wochen", boden:"Locker, eher sandig",
     tipps:["Einer der robustesten Wintersalate, erträgt Frost bis etwa −20 °C.","Bis zu dreimal schneiden, 2 cm über dem Herz.","Sät sich gern selbst aus."],
@@ -1264,7 +1314,7 @@ const PLANTS = [
     tipps:["Für Topf und Balkon eignen sich Snack- oder Mini-Gurken am besten.","Nur mit lauwarmem Wasser giessen, kaltes Wasser stresst sie.","Ein Spalier oder Netz spart Platz und hält die Früchte sauber.","Regelmässig ernten, dann bilden sich neue Früchte."],
     gut:["Dill","Bohnen","Salat"], schlecht:["Tomaten","Kartoffeln","Radieschen"] },
   { id:"tomate", n:"Tomate", c:"g", sun:"sonne", wo:["beet","topf","balkon"], frost:true,
-    v:[[5,7]], p:[[10,11]], e:[[14,19]],
+    v:[[6,7]], p:[[10,11]], e:[[14,19]],
     wie:"Mitte März bis Anfang April drinnen hell vorziehen. Nach dem Pikieren kühler stellen (ca. 18 °C). Nach den Eisheiligen tief einsetzen.",
     tiefe:"0,5–1 cm", abstand:"60–80 cm", keim:"7–10 Tage bei 20–24 °C", boden:"Nährstoffreich, Kompost",
     tipps:["Regenschutz (Dach oder Hauswand-Überstand) beugt der Kraut- und Braunfäule vor.","Seitentriebe in den Blattachseln regelmässig ausbrechen (ausgeizen), ausser bei Busch- und Cherrysorten.","Tiefer setzen als im Topf: am Stängel bilden sich zusätzliche Wurzeln.","Untere Blätter entfernen, damit keine Erde aufs Laub spritzt."],
@@ -1306,7 +1356,7 @@ const PLANTS = [
     tipps:["Bei langen Tagen und Hitze schiesst er. Darum nicht im Sommer säen.","Wintersorten überstehen leichten Frost unter Vlies.","Ernten, bevor er Blütenstängel bildet."],
     gut:["Erdbeeren","Radieschen","Kohl"], schlecht:["Mangold","Rande"] },
   { id:"nuesslisalat", n:"Nüsslisalat", alt:"Feldsalat", c:"g", sun:"halb", wo:["beet","topf","balkon"],
-    d:[[15,18]], e:[[20,24],[1,6]],
+    d:[[16,18]], e:[[20,24],[1,6]],
     wie:"Von Mitte August bis Ende September direkt säen. Wächst über den Winter.",
     tiefe:"1 cm (Dunkelkeimer)", abstand:"Reihen 10–15 cm", keim:"1–3 Wochen", boden:"Festgetreten, nicht zu locker",
     tipps:["Erde nach dem Säen gut andrücken, er mag festen Boden.","Ideale Nachkultur, wenn Bohnen oder Gurken abgeräumt sind.","Bei Kahlfrost mit Vlies oder Reisig abdecken."],
@@ -1331,7 +1381,7 @@ const PLANTS = [
     gut:["Rüebli","Erdbeeren","Nüsslisalat"], schlecht:["Bohnen","Erbsen","Kohl"] },
   { id:"knoblauch", n:"Knoblauch", c:"g", sun:"sonne", wo:["beet","topf"], mj:false,
     p:[[5,6],[18,21]], e:[[13,15]],
-    wie:"Einzelne Zehen mit der Spitze nach oben stecken. Herbstpflanzung (Oktober bis Mitte November) gibt die grösseren Knollen.",
+    wie:"Einzelne Zehen mit der Spitze nach oben stecken. Herbstpflanzung (Mitte September bis Mitte November) gibt die grösseren Knollen.",
     tiefe:"3–5 cm", abstand:"15 cm, Reihen 25 cm", keim:"Austrieb nach 2–3 Wochen", boden:"Durchlässig, nicht nass",
     tipps:["Bio-Knoblauch oder Pflanzknoblauch verwenden, Supermarktware ist oft behandelt.","Ernten, wenn ein Drittel des Laubs gelb ist.","Hält Schädlinge von Erdbeeren und Rüebli fern."],
     gut:["Erdbeeren","Rüebli","Tomaten"], schlecht:["Bohnen","Erbsen","Kohl"] },
@@ -1388,7 +1438,7 @@ const PLANTS = [
     tipps:["Blütenblätter sind essbar und färben Reis oder Butter gelb.","Für Salbe die voll geöffneten Blüten ernten.","Verblühtes abschneiden verlängert die Blütezeit bis zum Frost.","Lockt Nützlinge an und hält Fadenwürmer im Boden zurück."],
     gut:["Tomate","Kohl","Rüebli"], schlecht:[] },
   { id:"kapuzinerkresse", n:"Kapuzinerkresse", c:"b", sun:"sonne", wo:["beet","topf","balkon"], frost:true,
-    v:[[7,9]], d:[[9,11]], p:[[10,11]], e:[[12,19]],
+    v:[[7,9]], d:[[10,11]], p:[[10,11]], e:[[12,19]],
     wie:"Nach den Eisheiligen direkt säen oder ab April drinnen vorziehen. Rankende Sorten klettern an Zäunen.",
     tiefe:"2 cm (Dunkelkeimer)", abstand:"30 cm", keim:"1–2 Wochen", boden:"Eher mager, sonst gibt es viel Laub und wenig Blüten",
     tipps:["Blüten, Blätter und Knospen sind essbar und schmecken scharf wie Kresse.","Lockt Blattläuse an und schützt so Bohnen und Kohl (Fangpflanze).","Unreife Samen eingelegt ergeben «falsche Kapern»."],
@@ -1936,7 +1986,7 @@ const Native = (() => {
     const C = window.Capacitor;
     if (!C || !C.isNativePlatform || !C.isNativePlatform() || typeof C.registerPlugin !== "function") return null;
     return {
-      Prefs: C.registerPlugin("Preferences"),
+      Prefs: window.SAATZEIT_PREFS || C.registerPlugin("Preferences"),
       Notify: C.registerPlugin("LocalNotifications"),
       Files: C.registerPlugin("Filesystem"),
       Share: C.registerPlugin("Share")
@@ -1963,7 +2013,9 @@ const state = {
   cat: "all", ort: "all", q: "", onlyFav: false, view: store.get("saatzeit.view", "balken"),
   remind: store.get("saatzeit.erinnerungen", false),
   favs: new Set(store.get("saatzeit.favs", [])),
-  starts: new Set(store.get("saatzeit.start", [])) // Glocke auf der Pflanzenseite: Erinnerung zum Beginn der Zeitfenster
+  starts: new Set(store.get("saatzeit.start", [])), // Glocke auf der Pflanzenseite: Erinnerung zum Beginn der Zeitfenster
+  push: { start: true, ablauf: true, folge: true, ernte: true, termine: true, monat: true, ...store.get("saatzeit.push", {}) },
+  moon: store.get("saatzeit.mond", false) // Mondkalender, Standard aus
 };
 document.getElementById("klima").value = String(state.shift);
 
@@ -2136,7 +2188,8 @@ function renderQuote() {
 function renderHero() {
   const t = new Date(), season = SEASONS[seasonKey(t.getMonth() + 1)];
   const wd = t.toLocaleDateString("de-CH", { weekday: "long", day: "numeric", month: "long" });
-  document.getElementById("h-date").textContent = `${wd} · ${season.name}`;
+  const lage = document.getElementById("klima").selectedOptions[0]?.text.split(" (")[0].split(" oder ")[0] || ""; // kurz: «Voralpen» statt «Voralpen oder kühle Lage»
+  document.getElementById("h-date").textContent = `${wd} · ${season.name} · ${lage}`;
   document.getElementById("h-now").textContent = MONTHS[t.getMonth()];
 
   const { pick, total } = heroTasks();
@@ -2171,6 +2224,7 @@ function renderHero() {
     hh.innerHTML = `<p class="hempty">Hier erscheint, was du gesät oder gepflanzt hast, sobald es bald erntereif ist. Öffne eine Pflanze und trage es unter «Angepflanzt» ein.</p><a class="more" href="#h-all">Zu allen Pflanzen</a>`;
   }
 
+  renderMoon();
   const [n1, n2] = nextEvents(2);
   document.getElementById("hnext").innerHTML = `<span class="label">Nächster Termin</span>
     <div class="ev"><b class="ev-when">${relDays(n1.days)}</b>
@@ -2333,7 +2387,8 @@ function renderHistory() {
   const list = entriesFor(box.dataset.plant).sort((x, y) => (y.datum || "").localeCompare(x.datum || ""));
   box.innerHTML = list.length ? `<ul class="hist">${list.map(e => {
     const { a, meta } = entryLine(e);
-    return `<li><span class="pill ${a.cls}">${a.label}</span><span>${fmtDate(e.datum)}</span>${meta ? `<span class="meta">${meta}</span>` : ""}<button class="btn x" data-del="${esc(e.id)}">Löschen</button>${progHTML(growth(e))}</li>`;
+    const nx = followUps(e).find(f => f.at >= startOfDay(new Date()));
+    return `<li><span class="pill ${a.cls}">${a.label}</span><span>${fmtDate(e.datum)}</span>${meta ? `<span class="meta">${meta}</span>` : ""}<button class="btn x" data-del="${esc(e.id)}">Löschen</button>${nx ? `<span class="next-step">Nächster Schritt: ${nx.step}, um den ${dateLong(nx.at)}</span>` : ""}${progHTML(growth(e))}</li>`;
   }).join("")}</ul>` : `<p class="empty">Noch keine Einträge für diese Pflanze.</p>`;
 }
 function gardenChanged() { renderGarden(); renderList(); renderHistory(); renderHero(); gardenStatus(); queueReminders(); }
@@ -2461,6 +2516,105 @@ document.getElementById("gcode-sec").addEventListener("click", async e => {
 let remindTimer = null;
 function queueReminders() { clearTimeout(remindTimer); remindTimer = setTimeout(scheduleReminders, 1200); }
 
+// Folgeschritte für «Drinnen vorgezogen»: pikieren (nach 3 Wochen), abhärten (eine Woche vor dem Auspflanzen),
+// auspflanzen (Beginn des nächsten Auspflanzfensters, frühestens 4 Wochen nach der Aussaat). Faustregeln.
+// Entfällt, sobald für dieselbe Pflanze eine spätere Pflanzung «Ausgepflanzt / gesetzt» eingetragen ist.
+const NO_PIKIEREN = new Set(["kuerbis", "zucchini", "gurke", "mais"]); // werden einzeln in Töpfe gesät
+function followUps(e) {
+  const p = plantById(e.pflanze);
+  if (!p || e.art !== "v" || !e.datum) return [];
+  const sow = new Date(e.datum + "T09:00:00");
+  if (garden.entries.some(x => x.pflanze === e.pflanze && x.art === "p" && (x.datum || "") >= e.datum)) return [];
+  const steps = [], day = (d, n) => new Date(d.getFullYear(), d.getMonth(), d.getDate() + n, 9);
+  if (!NO_PIKIEREN.has(p.id)) steps.push({ step: "Pikieren", at: day(sow, 21), title: `${p.n}: pikieren`,
+    body: "Die Sämlinge haben jetzt meist die ersten richtigen Blätter. Setze sie einzeln in kleine Töpfe." });
+  const earliest = day(sow, 28);
+  let plant = null;
+  for (const [a, b] of windows(p, "p")) for (const y of [sow.getFullYear(), sow.getFullYear() + 1]) {
+    const from = new Date(y, Math.ceil(a / 2) - 1, a % 2 ? 1 : 16, 9);
+    const to = b % 2 ? new Date(y, Math.ceil(b / 2) - 1, 15, 9) : new Date(y, Math.ceil(b / 2), 0, 9);
+    const d = from >= earliest ? from : earliest <= to ? earliest : null;
+    if (d && (!plant || d < plant)) plant = d;
+  }
+  if (plant && plant - sow < 150 * DAY) { // ausser Saison vorgezogen: keine Schritte fürs nächste Jahr
+    const hard = day(plant, -7);
+    if (hard - sow > 14 * DAY) steps.push({ step: "Abhärten", at: hard, title: `${p.n}: abhärten`,
+      body: "In einer Woche dürfen sie ins Freie. Stelle die Jungpflanzen tagsüber nach draussen, zuerst in den Schatten, und hole sie abends wieder herein." });
+    steps.push({ step: "Auspflanzen", at: plant, title: `${p.n}: auspflanzen`,
+      body: `Die vorgezogenen Pflanzen dürfen jetzt ins Freie.${p.frost ? " Faustregel: vorher den Wetterbericht prüfen, Frost vertragen sie nicht." : ""}` });
+  }
+  return steps;
+}
+
+/* ---------- Mondkalender (überlieferte Gärtnertradition, Standard aus) ----------
+   Mondlänge nach einer gekürzten Reihe von Meeus (Genauigkeit etwa 0,3°), Sternbilder vereinfacht als gleich grosse
+   siderische Zeichen (tropische Länge minus Präzession). Reicht für «heute ist ein Fruchttag», nicht für die Astronomie. */
+const MOON_SIGNS = ["Widder","Stier","Zwillinge","Krebs","Löwe","Jungfrau","Waage","Skorpion","Schütze","Steinbock","Wassermann","Fische"];
+const MOON_TYPES = ["frucht","wurzel","bluete","blatt"]; // Feuer, Erde, Luft, Wasser
+const MOON_LABEL = { frucht: "Fruchttag", wurzel: "Wurzeltag", bluete: "Blütentag", blatt: "Blatttag" };
+const MOON_PLANT = { frucht: "Fruchtpflanze", wurzel: "Wurzelpflanze", bluete: "Blütenpflanze", blatt: "Blattpflanze" };
+const MOON_GOOD = { frucht: "Tomaten, Bohnen, Kürbis und Beeren", wurzel: "Rüebli, Randen, Kartoffeln und Zwiebeln",
+  bluete: "Blumen und Broccoli", blatt: "Salat, Kohl, Spinat und Kräuter" };
+const MOON_ORGAN = {
+  wurzel: ["rueebli","radieschen","rettich","rande","pastinaken","kartoffeln","zwiebeln","knoblauch","schalotten","sellerie","topinambur","fruehlingszwiebeln"],
+  frucht: ["tomate","peperoni","aubergine","gurke","zucchini","kuerbis","bohnen","stangenbohnen","erbsen","kefen","mais","physalis","erdbeeren","himbeeren","johannisbeeren","stachelbeeren","heidelbeeren"],
+  bluete: ["broccoli","ringelblume","kapuzinerkresse","sonnenblume","tagetes","lavendel","kamille","borretsch"]
+};
+function moonType(p) {
+  for (const [t, ids] of Object.entries(MOON_ORGAN)) if (ids.includes(p.id)) return t;
+  return p.c === "f" ? "frucht" : p.c === "b" ? "bluete" : "blatt";
+}
+function moonAt(date) {
+  const rad = Math.PI / 180, T = (date.getTime() / DAY + 2440587.5 - 2451545) / 36525;
+  const n = x => ((x % 360) + 360) % 360;
+  const Lp = 218.3164477 + 481267.88123421 * T, D = 297.8501921 + 445267.1114034 * T;
+  const Ms = 357.5291092 + 35999.0502909 * T, Mm = 134.9633964 + 477198.8675055 * T, F = 93.2720950 + 483202.0175233 * T;
+  const lon = n(Lp + 6.289 * Math.sin(Mm * rad) + 1.274 * Math.sin((2 * D - Mm) * rad) + 0.658 * Math.sin(2 * D * rad)
+    + 0.214 * Math.sin(2 * Mm * rad) - 0.186 * Math.sin(Ms * rad) - 0.114 * Math.sin(2 * F * rad));
+  const sun = n(280.46646 + 36000.76983 * T + 1.9146 * Math.sin(Ms * rad) + 0.02 * Math.sin(2 * Ms * rad));
+  const elong = n(lon - sun), sid = n(lon - (23.85 + 1.397 * T)); // siderisch: Präzession, 23,85° im Jahr 2000, plus 1,4° pro Jahrhundert
+  const sign = Math.floor(sid / 30);
+  return {
+    sign: MOON_SIGNS[sign], type: MOON_TYPES[sign % 4],
+    waxing: elong < 180, full: Math.abs(elong - 180) < 12, fresh: elong < 12 || elong > 348,
+    rising: lon >= 270 || lon < 90 // aufsteigend: Mond wandert am Himmel jeden Tag höher
+  };
+}
+const noon = d => new Date(d.getFullYear(), d.getMonth(), d.getDate(), 12);
+// Zusammenhängende Tage eines Typs in den nächsten 'days' Tagen, z. B. [[7. Nov, 9. Nov], …]
+function moonDays(type, from = new Date(), days = 30) {
+  const out = []; let cur = null;
+  for (let i = 0; i < days; i++) {
+    const d = noon(new Date(from.getFullYear(), from.getMonth(), from.getDate() + i));
+    if (moonAt(d).type === type) { if (cur) cur[1] = d; else out.push(cur = [d, d]); } else cur = null;
+  }
+  return out;
+}
+const rangeText = ([a, b]) => +a === +b ? dateLong(a) : a.getMonth() === b.getMonth()
+  ? `${a.getDate()}.–${dateLong(b)}` : `${dateLong(a)} – ${dateLong(b)}`;
+function moonPhaseText(m) {
+  return m.fresh ? "Neumond" : m.full ? "Vollmond" : m.waxing ? "zunehmend" : "abnehmend";
+}
+function renderMoon() {
+  const box = document.getElementById("hmoon");
+  box.hidden = !state.moon;
+  if (!state.moon) return;
+  const today = noon(new Date()), m = moonAt(today);
+  let next = null;
+  for (let i = 1; i < 6 && !next; i++) {
+    const d = noon(new Date(today.getFullYear(), today.getMonth(), today.getDate() + i)), x = moonAt(d);
+    if (x.type !== m.type) next = { d, x };
+  }
+  box.innerHTML = `<span class="label">Mondkalender</span>
+    <div class="moon-today"><strong>${MOON_LABEL[m.type]}</strong> <span class="meta">· Mond ${moonPhaseText(m)}, ${m.rising ? "aufsteigend" : "absteigend"}</span></div>
+    <p class="meta">Gut für ${MOON_GOOD[m.type]}.${next ? ` Ab ${dateLong(next.d)}: ${MOON_LABEL[next.x.type]}.` : ""} Überlieferte Regel, ohne belegte Wirkung.</p>`;
+}
+function moonPlantHTML(p) {
+  if (!state.moon) return "";
+  const t = moonType(p), r = moonDays(t).slice(0, 3);
+  return `<p class="meta moon-line">Mondkalender: ${esc(p.n)} gilt als ${MOON_PLANT[t]}.${r.length ? ` Nächste ${MOON_LABEL[t].replace("tag", "tage")}: ${r.map(rangeText).join(", ")}.` : ""}</p>`;
+}
+
 // Nächste Beginne der Zeitfenster (Vorziehen, Säen, Pflanzen) innerhalb eines Jahres, je Tag zusammengefasst, um 9 Uhr.
 // Ganzjährige Fenster haben keinen Beginn. Die Lage (state.shift) ist in windows() schon eingerechnet.
 function upcomingStarts(p, from = new Date()) {
@@ -2483,19 +2637,20 @@ function reminderList() {
   const at = (d, h) => { const x = new Date(d); x.setHours(h, 0, 0, 0); return x; };
   const soon = d => d > t && d - t < 120 * DAY;
   // Gartentermine: am Vorabend um 18 Uhr
-  for (const ev of nextEvents(6)) {
+  const on = state.push;
+  if (on.termine) for (const ev of nextEvents(6)) {
     const d = at(new Date(ev.date.getTime() - DAY), 18);
     if (soon(d)) list.push({ title: `Morgen: ${ev.t}`, body: ev.s, at: d });
   }
   // Eigene Pflanzungen: am Morgen, an dem sie erntereif werden
-  for (const e of garden.entries) {
+  if (on.ernte) for (const e of garden.entries) {
     const g = growth(e), p = plantById(e.pflanze);
     if (!g || !p || g.status !== "wachsend") continue;
     const d = at(g.ready, 8);
     if (soon(d)) list.push({ title: `${p.n} ist erntereif`, body: `Deine Pflanzung vom ${fmtDate(e.datum)} kann jetzt geerntet werden.`, at: d });
   }
   // Markierte Pflanzen (★): eine Woche bevor das Zeitfenster zum Säen oder Pflanzen endet
-  for (const p of PLANTS.filter(x => state.favs.has(x.id))) for (const k of ["v", "d", "p"]) for (const [, b] of windows(p, k)) {
+  if (on.ablauf) for (const p of PLANTS.filter(x => state.favs.has(x.id))) for (const k of ["v", "d", "p"]) for (const [, b] of windows(p, k)) {
     for (const y of [t.getFullYear(), t.getFullYear() + 1]) {
       const m = Math.ceil(b / 2) - 1, end = b % 2 ? new Date(y, m, 15) : new Date(y, m + 1, 0);
       const d = at(new Date(end.getTime() - 6 * DAY), 9);
@@ -2503,11 +2658,15 @@ function reminderList() {
     }
   }
   // Glocke auf der Pflanzenseite: am Morgen, an dem ein Zeitfenster zum Vorziehen, Säen oder Pflanzen beginnt
-  for (const p of PLANTS.filter(x => state.starts.has(x.id))) for (const s of upcomingStarts(p, t)) {
+  if (on.start) for (const p of PLANTS.filter(x => state.starts.has(x.id))) for (const s of upcomingStarts(p, t)) {
     list.push({ title: `${p.n}: Jetzt geht's los`, body: `Ab heute möglich: ${startText(s)}.`, at: s.at });
   }
+  // Folgeschritte nach dem Vorziehen: pikieren, abhärten, auspflanzen
+  if (on.folge) for (const e of garden.entries) for (const f of followUps(e)) {
+    if (f.at > t) list.push({ title: f.title, body: f.body, at: f.at });
+  }
   // Monatsanfang: kurzer Überblick
-  for (let i = 1; i <= 3; i++) {
+  if (on.monat) for (let i = 1; i <= 3; i++) {
     const d = new Date(t.getFullYear(), t.getMonth() + i, 1, 9), m = d.getMonth() + 1;
     const n = PLANTS.filter(p => ["v", "d", "p"].some(k => inMonth(windows(p, k), m))).length;
     list.push({ title: `Jetzt im ${MONTHS[m - 1]}`, body: `${n} Pflanzen können diesen Monat gesät oder gepflanzt werden.`, at: d });
@@ -2543,7 +2702,7 @@ function remindHint(text) { const h = remEl("remind-hint"); h.textContent = text
 function setRemind(on) {
   state.remind = on; store.set("saatzeit.erinnerungen", on);
   remEl("remind-ask").hidden = true; remEl("remind").hidden = false;
-  renderRemindBtn(); scheduleReminders();
+  renderRemindBtn(); scheduleReminders(); renderSettings();
 }
 async function notifyPermission() {
   try { return (await Native.Notify.checkPermissions()).display; } catch (e) { return "prompt"; }
@@ -2696,7 +2855,9 @@ function renderBell(note) {
   b.setAttribute("aria-pressed", String(on));
   b.textContent = on ? "Erinnerung eingestellt" : "Erinnere mich, wenn es losgeht";
   const when = next ? `${dateLong(next.at)} um 9 Uhr (${startText(next)})` : "";
-  document.getElementById("d-bell-hint").textContent = note || (on
+  const hint = document.getElementById("d-bell-hint");
+  hint.hidden = false;
+  hint.textContent = note || (on
     ? `Saatzeit meldet sich am ${when}. Nochmals tippen schaltet die Erinnerung aus.`
     : `Mitteilung am ${when}.`);
 }
@@ -2714,6 +2875,7 @@ async function bellClick() {
   if (perm === "denied") { renderBell(SETTINGS_HINT); return; }
   document.getElementById("d-bell-ask").hidden = false;
   document.getElementById("d-bell").hidden = true;
+  document.getElementById("d-bell-hint").hidden = true; // Die Frage ersetzt den Hinweis, sonst steht beides da
   document.getElementById("d-bell-yes").focus();
 }
 async function bellAsk(yes) {
@@ -2763,6 +2925,7 @@ function openDetail(id) {
       ${trackHTML(p, true)}
       <div class="when">${when}</div>
       ${bellHTML(p)}
+      ${moonPlantHTML(p)}
     </div>
     <div class="block"><span class="label">Wie</span>
       <p>${esc(p.wie)}</p>
@@ -2918,6 +3081,17 @@ document.getElementById("schrift").addEventListener("click", e => {
   renderSettings();
 });
 
+document.getElementById("mond").addEventListener("click", e => {
+  const b = e.target.closest("button"); if (!b) return;
+  state.moon = b.dataset.v === "an"; store.set("saatzeit.mond", state.moon);
+  renderSettings(); renderHero();
+});
+document.getElementById("push-list").addEventListener("change", e => {
+  const k = e.target.dataset.push; if (!k) return;
+  state.push[k] = e.target.checked; store.set("saatzeit.push", state.push);
+  queueReminders();
+});
+
 // Eigene Pflanzen: gleiche Form wie die eingebauten, gespeichert unter "saatzeit.eigene"
 function ownPlant(o) {
   return {
@@ -3021,6 +3195,12 @@ function renderSettings() {
   document.querySelectorAll("#theme button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.v === t)));
   const ts = store.get("saatzeit.schrift", "normal");
   document.querySelectorAll("#schrift button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.v === ts)));
+  document.querySelectorAll("#mond button").forEach(b => b.setAttribute("aria-pressed", String((b.dataset.v === "an") === state.moon)));
+  $("push-sec").hidden = !Native;
+  document.querySelectorAll("#push-list input").forEach(i => { i.checked = state.push[i.dataset.push] !== false; });
+  $("push-state").innerHTML = state.remind
+    ? "Erinnerungen sind eingeschaltet. Hier wählst du, welche Saatzeit schicken darf."
+    : `Erinnerungen sind ausgeschaltet. Einschalten kannst du sie unter <a href="#garten">Meine Pflanzen</a>, danach gilt diese Auswahl.`;
   const own = PLANTS.filter(p => p.eigen);
   $("ownlist").innerHTML = own.length ? own.map(p => `<div class="own-item">${icon(p)}
       <span class="txt"><strong>${esc(p.n)}</strong><span class="meta">${CAT[p.c]}${entriesFor(p.id).length ? ` · ${countText(entriesFor(p.id).length)}` : ""}</span></span>
@@ -3059,46 +3239,36 @@ document.addEventListener("copy", e => {
 });
 
 /* ---------- Seiten und Menü ---------- */
-const VIEWS = { home: "Home", garten: "Meine Pflanzen", einstellungen: "Einstellungen", hilfe: "Hilfe", faq: "Fragen & Antworten", impressum: "Impressum" };
-const menuBtn = document.getElementById("menu-btn"), menuList = document.getElementById("menu-list");
-function setMenu(open) {
-  menuList.hidden = !open;
-  menuBtn.setAttribute("aria-expanded", String(open));
-}
+const VIEWS = { home: "Heute", kalender: "Kalender", garten: "Meine Pflanzen", mehr: "Mehr",
+  einstellungen: "Einstellungen", hilfe: "Hilfe", faq: "Fragen & Antworten", impressum: "Impressum" };
+const TAB_OF = { einstellungen: "mehr", hilfe: "mehr", faq: "mehr", impressum: "mehr" }; // Unterseiten von «Mehr»
+// Unterseiten von «Mehr» erhalten oben einen Zurück-Link
+Object.keys(TAB_OF).forEach(v => {
+  const view = document.querySelector(`.view[data-view="${v}"]`);
+  if (view) view.insertAdjacentHTML("afterbegin", '<a class="back" href="#mehr">‹ Mehr</a>');
+});
 function showView(v) {
   document.querySelectorAll(".view").forEach(el => { el.hidden = el.dataset.view !== v; });
-  document.getElementById("menu-current").textContent = VIEWS[v];
-  menuList.querySelectorAll("a").forEach(a => {
-    if (a.dataset.nav === v) a.setAttribute("aria-current", "page"); else a.removeAttribute("aria-current");
+  const tab = TAB_OF[v] || v;
+  document.querySelectorAll(".tabbar a").forEach(a => {
+    if (a.dataset.tab === tab) a.setAttribute("aria-current", "page"); else a.removeAttribute("aria-current");
   });
+  document.title = v === "home" ? "Saatzeit" : `${VIEWS[v]} – Saatzeit`;
 }
-// Hash steuert die Seite. Ein Anker innerhalb der Startseite (z. B. #monat) öffnet Home und scrollt dorthin.
+// Hash steuert die Seite. Ein Anker (z. B. #monat) öffnet die Seite, in der er steht, und scrollt dorthin.
 function route() {
   const h = decodeURIComponent(location.hash.slice(1));
-  setMenu(false);
   if (!document.getElementById("drawer").hidden) closeDetail();
   if (VIEWS[h]) { showView(h); window.scrollTo(0, 0); return; }
-  showView("home");
-  const el = h && document.getElementById(h);
+  const el = h && document.getElementById(h), view = el && el.closest(".view");
+  showView(view ? view.dataset.view : "home");
   if (el) el.scrollIntoView(); else window.scrollTo(0, 0);
 }
 window.addEventListener("hashchange", route);
-menuBtn.addEventListener("click", () => {
-  const open = menuList.hidden;
-  setMenu(open);
-  if (open) (menuList.querySelector("a[aria-current]") || menuList.querySelector("a")).focus();
-});
-document.addEventListener("click", e => { if (!menuList.hidden && !e.target.closest(".menu")) setMenu(false); });
-menuList.addEventListener("click", e => {
-  // Gleiche Seite nochmals gewählt: kein hashchange, also selbst schliessen und nach oben
+// Gleichen Reiter nochmals antippen: kein hashchange, also selbst nach oben
+document.querySelector(".tabbar").addEventListener("click", e => {
   const a = e.target.closest("a");
-  if (a && location.hash.slice(1) === a.dataset.nav) { setMenu(false); window.scrollTo(0, 0); }
-});
-menuList.addEventListener("keydown", e => {
-  const items = [...menuList.querySelectorAll("a")], i = items.indexOf(document.activeElement);
-  if (e.key === "ArrowDown") { e.preventDefault(); items[(i + 1) % items.length].focus(); }
-  if (e.key === "ArrowUp") { e.preventDefault(); items[(i - 1 + items.length) % items.length].focus(); }
-  if (e.key === "Escape") { setMenu(false); menuBtn.focus(); }
+  if (a && (location.hash.slice(1) || "home") === a.dataset.tab) window.scrollTo({ top: 0, behavior: "smooth" });
 });
 
 document.getElementById("view").addEventListener("click", e => {
@@ -3131,7 +3301,7 @@ function refreshDay() {
 document.addEventListener("visibilitychange", () => { if (!document.hidden) refreshDay(); });
 setInterval(refreshDay, 60000);
 
-const APP_VERSION = "1.1";
+const APP_VERSION = "1.2";
 document.querySelectorAll(".app-version").forEach(el => { el.textContent = `Saatzeit, Version ${APP_VERSION} (Test)`; });
 applySeason();
 applyOwnPlants();

@@ -48,7 +48,7 @@ Die nativen Projekte (`ios/`, `android/`) liegen nicht im Repository. Sie werden
 ## Technik
 
 - Reines HTML, CSS und JavaScript, ohne Framework und ohne Build-Schritt für die Oberfläche.
-- [Capacitor 7](https://capacitorjs.com) verpackt die Oberfläche als iOS-App. Verwendete Plugins:
+- [Capacitor 8](https://capacitorjs.com) verpackt die Oberfläche als App für iPhone und Android. Verwendete Plugins:
   - `@capacitor/preferences`: dauerhafter Speicher für Einträge, Favoriten und Einstellungen
   - `@capacitor/local-notifications`: Erinnerungen
   - `@capacitor/filesystem` und `@capacitor/share`: Sicherungsdatei schreiben und teilen
@@ -67,7 +67,7 @@ Die genauen Schritte stehen in [ANLEITUNG-IPHONE.md](ANLEITUNG-IPHONE.md).
 
 ### Auf einem Mac
 
-Voraussetzungen: Node.js 20, Xcode und CocoaPods.
+Voraussetzungen: Node.js 22, Xcode und CocoaPods (nur für das Ruby-Gem `xcodeproj`, Capacitor 8 baut mit Swift Package Manager).
 
 ```bash
 npm install
