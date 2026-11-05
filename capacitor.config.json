@@ -6,6 +6,9 @@
     "contentInset": "never",
     "backgroundColor": "#F3F5F0"
   },
+  "android": {
+    "backgroundColor": "#F3F5F0"
+  },
   "plugins": {
     "LocalNotifications": {
       "iconColor": "#1F5C4A"

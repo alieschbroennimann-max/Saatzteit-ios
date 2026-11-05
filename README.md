@@ -1,6 +1,6 @@
 # Saatzeit
 
-Pflanzkalender für Kräuter, Gemüse, Beeren und Blumen rund ums Haus, als iPhone-App.
+Pflanzkalender für Kräuter, Gemüse, Beeren und Blumen rund ums Haus, als App für iPhone und Android.
 Saatzeit zeigt, was du wann, wie und wo säen, pflanzen und ernten kannst, und führt dein eigenes Gartentagebuch.
 Alle Daten bleiben auf dem Gerät. Es gibt kein Konto, keinen Server und kein Tracking.
 
@@ -31,14 +31,19 @@ Die Termine sind Richtwerte für die Schweiz und Mitteleuropa.
 |---|---|
 | `www/index.html` | die ganze App: Oberfläche, Pflanzendaten, Sprüche und Logik in einer Datei. Sie ist zugleich die Hauptdatei für die Web-App und die claude.ai-Version. |
 | `www/icon.svg` | Icon für die Browser-Ansicht |
-| `resources/icon-only.png` | App-Icon, 1024 × 1024 px |
+| `www/fonts/` | Schriften als `.woff2` mit Lizenztexten (Bricolage Grotesque, Atkinson Hyperlegible, IBM Plex Mono) |
+| `resources/icon-only.png` | App-Icon, 1024 × 1024 px, ohne Transparenz und mit eckigen Ecken (iOS rundet selbst) |
+| `resources/icon-foreground.png`, `icon-background.png` | Ebenen für das Android-Adaptive-Icon (Motiv im sicheren Kreis) |
 | `resources/splash.png` | Startbild, 2732 × 2732 px |
+| `ios-extras/PrivacyInfo.xcprivacy` | Datenschutz-Manifest für den App Store: kein Tracking, keine erhobenen Daten, Gründe für UserDefaults (CA92.1) und Dateizeiten (C617.1) |
+| `scripts/ios-setup.rb` | ergänzt das iOS-Projekt beim Bau: trägt das Manifest als Ressource ein und setzt in der `Info.plist` `ITSAppUsesNonExemptEncryption` auf NO (keine eigene Verschlüsselung, keine Exportfrage bei jedem Build) |
 | `capacitor.config.json` | App-ID (`ch.saatzeit.app`), App-Name und Einstellungen |
 | `package.json` | Capacitor und Plugins (Mitteilungen, Speicher, Dateien, Teilen) |
-| `codemagic.yaml` | Cloud-Build auf Codemagic, erzeugt eine unsignierte `.ipa` |
+| `codemagic.yaml` | Cloud-Build auf Codemagic: unsignierte `.ipa` fürs iPhone und Test-APK für Android |
 | `ANLEITUNG-IPHONE.md` | Schritt für Schritt: vom Repository bis zur App auf dem iPhone |
+| `ANLEITUNG-ANDROID.md` | Schritt für Schritt: vom Repository bis zur App auf dem Android-Handy |
 
-Das native iOS-Projekt (`ios/`) liegt nicht im Repository. Es wird bei jedem Build neu erzeugt.
+Die nativen Projekte (`ios/`, `android/`) liegen nicht im Repository. Sie werden bei jedem Build neu erzeugt.
 
 ## Technik
 
@@ -79,5 +84,5 @@ Die Datei `www/index.html` über einen beliebigen lokalen Webserver öffnen. Eri
 ## Daten und Datenschutz
 
 - Alle Einträge, Favoriten und Einstellungen bleiben auf dem Gerät.
-- Die App sendet keine Daten an einen Server. Einzige Ausnahme: Die Schriften werden über Google Fonts geladen. Ohne Internet verwendet die App die Systemschriften.
+- Die App sendet keine Daten an einen Server und lädt nichts nach. Schriften (`www/fonts/`, SIL Open Font License) und Icons sind in der App enthalten, sie funktioniert komplett offline.
 - Eine Sicherung entsteht nur, wenn du selbst auf **Sichern** tippst.

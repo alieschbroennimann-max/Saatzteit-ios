@@ -1,4 +1,7 @@
 node_modules/
 ios/
+android/
 Payload/
+www/capacitor.js
 *.ipa
+*.apk

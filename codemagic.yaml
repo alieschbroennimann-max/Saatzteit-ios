@@ -1,6 +1,35 @@
-# Codemagic baut Saatzeit in der Cloud auf einem Mac und liefert eine unsignierte .ipa.
-# Die .ipa wird danach mit Sideloadly und einer normalen Apple-ID aufs iPhone gespielt (7 Tage gültig).
+# Codemagic baut Saatzeit in der Cloud.
+# - ios-test:     unsignierte .ipa, danach mit Sideloadly und einer normalen Apple-ID aufs iPhone (7 Tage gültig)
+# - android-test: Test-APK, lässt sich direkt auf jedem Android-Handy installieren
 workflows:
+  android-test:
+    name: Saatzeit Android-Test (APK)
+    instance_type: mac_mini_m2
+    max_build_duration: 45
+    environment:
+      node: 20
+      java: 21
+    scripts:
+      - name: Pakete installieren
+        script: npm install
+      - name: Android-Projekt erzeugen
+        script: |
+          # Capacitor-Grundbibliothek für die App ohne Bundler bereitstellen
+          cp node_modules/@capacitor/core/dist/capacitor.js www/capacitor.js
+          npx cap add android
+          npx capacitor-assets generate --android
+          npx cap sync android
+          node scripts/android-setup.mjs
+      - name: APK bauen
+        script: |
+          cd android
+          chmod +x gradlew
+          ./gradlew assembleDebug
+          cp app/build/outputs/apk/debug/app-debug.apk "$CM_BUILD_DIR/Saatzeit-test.apk"
+    artifacts:
+      - Saatzeit-test.apk
+
+
   ios-test:
     name: Saatzeit iPhone-Test (unsigniert)
     instance_type: mac_mini_m2
@@ -19,6 +48,11 @@ workflows:
           npx cap add ios
           npx capacitor-assets generate --ios
           npx cap sync ios
+      - name: App-Store-Angaben eintragen
+        script: |
+          # Datenschutz-Manifest ins Xcode-Projekt, Info.plist: ITSAppUsesNonExemptEncryption = NO
+          ruby -e 'require "xcodeproj"' 2>/dev/null || gem install xcodeproj --no-document
+          ruby scripts/ios-setup.rb
       - name: App bauen (ohne Signatur)
         script: |
           if [ -d ios/App/App.xcworkspace ]; then

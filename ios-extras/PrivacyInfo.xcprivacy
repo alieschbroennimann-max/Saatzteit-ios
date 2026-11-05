@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  Datenschutz-Manifest von Saatzeit (Pflicht fuer den App Store).
+  - Kein Tracking, keine Tracking-Domains, es werden keine Daten erhoben.
+  - Gruende fuer die genutzten Systemschnittstellen:
+      UserDefaults   CA92.1  Einstellungen und Eintraege nur fuer diese App speichern (@capacitor/preferences)
+      Dateizeiten    C617.1  Zeitstempel von Dateien im eigenen App-Ordner lesen (@capacitor/filesystem, Sicherung)
+  Liegt hier, weil der Ordner ios/ bei jedem Bau neu entsteht. Wird von scripts/ios-setup.rb nach ios/App/App/ kopiert und ins Xcode-Projekt eingetragen.
+-->
+<plist version="1.0">
+<dict>
+	<key>NSPrivacyTracking</key>
+	<false/>
+	<key>NSPrivacyTrackingDomains</key>
+	<array/>
+	<key>NSPrivacyCollectedDataTypes</key>
+	<array/>
+	<key>NSPrivacyAccessedAPITypes</key>
+	<array>
+		<dict>
+			<key>NSPrivacyAccessedAPIType</key>
+			<string>NSPrivacyAccessedAPICategoryUserDefaults</string>
+			<key>NSPrivacyAccessedAPITypeReasons</key>
+			<array>
+				<string>CA92.1</string>
+			</array>
+		</dict>
+		<dict>
+			<key>NSPrivacyAccessedAPIType</key>
+			<string>NSPrivacyAccessedAPICategoryFileTimestamp</string>
+			<key>NSPrivacyAccessedAPITypeReasons</key>
+			<array>
+				<string>C617.1</string>
+			</array>
+		</dict>
+	</array>
+</dict>
+</plist>

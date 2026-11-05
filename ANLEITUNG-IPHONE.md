@@ -1,85 +1,126 @@
-# Saatzeit als Test-App aufs iPhone
+# Saatzeit als Test-App aufs iPhone (mit dem MacBook)
 
-So kommt Saatzeit als echte App auf dein iPhone, gratis und ohne Mac. Die App läuft jeweils **7 Tage** und lässt sich danach mit einem Klick verlängern.
+Es gibt zwei Wege. Bei beiden läuft die App mit einer kostenlosen Apple-ID jeweils **7 Tage** und lässt sich danach
+erneut aufspielen. Deine Einträge bleiben dabei erhalten.
 
-Der Ablauf:
+| | Weg A: direkt mit Xcode | Weg B: Codemagic und Sideloadly |
+|---|---|---|
+| Gebaut wird | auf deinem MacBook | in der Cloud |
+| Braucht | Xcode (etwa 40 GB freier Platz), CocoaPods | GitHub, Codemagic, Sideloadly |
+| Gut, wenn | genug Platz frei ist, du oft testest | wenig Platz frei ist |
 
-1. **GitHub** speichert den Code.
-2. **Codemagic** baut daraus in der Cloud die App, als Datei `Saatzeit-unsigniert.ipa`.
-3. **Sideloadly** unterschreibt die Datei mit deiner Apple-ID und spielt sie aufs iPhone.
-
-Für den ersten Durchgang solltest du etwa eine Stunde einplanen.
+Für beide Wege einmal am iPhone: **Entwicklermodus einschalten** (Einstellungen → Datenschutz & Sicherheit →
+**Entwicklermodus** → ein). Das iPhone startet neu, danach die Nachfrage mit **Einschalten** bestätigen.
+Der Schalter erscheint eventuell erst, nachdem das iPhone einmal mit Xcode oder Sideloadly verbunden war.
 
 ---
 
-## 1. Code auf GitHub hochladen
+## Weg A: direkt mit Xcode
 
-1. Auf [github.com](https://github.com) ein kostenloses Konto erstellen.
-2. Oben rechts auf **+** → **New repository**.
-   - Name: `saatzeit`
-   - **Private** wählen
-   - Auf **Create repository** klicken.
-3. Auf der nächsten Seite auf den Link **uploading an existing file** klicken.
-4. Den **Inhalt** des Ordners `saatzeit-ios` in das Feld ziehen, also nicht den Ordner selbst. Hochgeladen werden müssen:
-   - `www` (Ordner)
-   - `resources` (Ordner)
-   - `package.json`
-   - `capacitor.config.json`
-   - `codemagic.yaml`
-   - `.gitignore`
+### Einmalig einrichten
 
-   Die Datei `.gitignore` ist im Windows-Explorer eventuell versteckt. Ohne sie geht es auch.
-5. Unten auf **Commit changes** klicken.
+1. **Platz schaffen:** Xcode braucht etwa 40 GB. Freien Platz zeigt  → Systemeinstellungen → Allgemein → Speicher.
+2. **Xcode** aus dem **Mac App Store** installieren. Einmal öffnen, die Lizenz bestätigen und, wenn Xcode danach
+   fragt, die Komponente **iOS** herunterladen.
+3. **Node.js** (LTS) von [nodejs.org](https://nodejs.org) installieren, falls noch nicht geschehen.
+4. **Homebrew** installieren: Den Befehl von [brew.sh](https://brew.sh) im Terminal ausführen.
+5. **CocoaPods** installieren, im Terminal:
 
-## 2. App bauen lassen mit Codemagic
+   ```
+   brew install cocoapods
+   ```
 
-1. Auf [codemagic.io](https://codemagic.io) gehen und **mit GitHub anmelden**. Den Zugriff auf das Repository `saatzeit` erlauben.
-2. **Add application** → GitHub → Repository `saatzeit` auswählen.
-   - Falls nach dem Projekttyp gefragt wird: **Capacitor**, oder «Other», wenn es keine passende Auswahl gibt.
-3. Codemagic findet die Datei `codemagic.yaml` von selbst.
-4. Auf **Start new build** klicken und den Workflow **Saatzeit iPhone-Test (unsigniert)** wählen.
-5. Der Bau dauert etwa 10 bis 15 Minuten. Danach unter **Artifacts** die Datei `Saatzeit-unsigniert.ipa` herunterladen.
+6. **Apple-ID in Xcode:** Xcode → Einstellungen → **Accounts** → **+** → Apple-ID anmelden.
 
-Schlägt der Bau fehl, kopiere mir den roten Teil des Protokolls. Dann schaue ich es mir an.
+### Das erste Mal bauen
 
-## 3. Sideloadly auf dem PC einrichten
+Terminal öffnen, in den Ordner `saatzeit-ios` wechseln und ausführen:
 
-1. Sideloadly von der offiziellen Seite [sideloadly.io](https://sideloadly.io) herunterladen und installieren.
-2. Sideloadly braucht **iTunes** und **iCloud für Windows**, und zwar die Versionen **direkt von apple.com**, nicht aus dem Microsoft Store. Die genauen Links stehen auf der Sideloadly-Seite.
-3. Das iPhone per USB-Kabel anschliessen und auf dem iPhone **«Diesem Computer vertrauen»** bestätigen.
+```
+cd ~/Documents/Saatzeit/saatzeit-ios
+npm install
+npm run ios:prepare
+npx cap open ios
+```
 
-## 4. App aufs iPhone spielen
+`npm run ios:prepare` erzeugt den Ordner `ios/` mit dem Xcode-Projekt und die Icons, trägt das Datenschutz-Manifest
+ein und setzt iOS 15 als Mindestversion (Xcode 27 baut nicht mehr für iOS 14). Das dauert ein bis zwei Minuten.
 
-1. Sideloadly öffnen. Das iPhone sollte oben erscheinen.
-2. Die Datei `Saatzeit-unsigniert.ipa` in das Sideloadly-Fenster ziehen.
-3. Deine **Apple-ID** (E-Mail) eintragen und auf **Start** klicken. Sideloadly fragt nach deinem Apple-Passwort und eventuell nach einem Bestätigungscode.
-   - Sideloadly leitet die Anmeldung nur an Apple weiter. Wer vorsichtig sein möchte, legt für Tests eine zweite, kostenlose Apple-ID an.
-4. Nach etwa einer Minute meldet Sideloadly **Done**.
+### In Xcode
 
-## 5. Auf dem iPhone freigeben
+1. Links ganz oben auf **App** klicken, dann in der Mitte das Ziel **App** und den Reiter **Signing & Capabilities**.
+2. Bei **Team** dein **Personal Team** (deinen Namen) wählen.
+   Meldet Xcode, die Bundle-ID sei schon vergeben, bei **Bundle Identifier** eine eigene wählen, zum Beispiel
+   `ch.saatzeit.test.deinname`.
+3. iPhone per Kabel anschliessen, entsperren und **«Diesem Computer vertrauen»** bestätigen.
+4. Oben in der Leiste dein iPhone als Ziel wählen und auf **▶** (Run) klicken.
+5. Beim ersten Mal auf dem iPhone: Einstellungen → Allgemein → **VPN & Geräteverwaltung** → deine Apple-ID →
+   **Vertrauen**. Dann in Xcode nochmals ▶.
 
-1. **Entwicklermodus einschalten** (ab iOS 16): Einstellungen → Datenschutz & Sicherheit → **Entwicklermodus** → ein. Das iPhone startet neu. Danach die Nachfrage mit **Einschalten** bestätigen.
-2. **Der eigenen App vertrauen:** Einstellungen → Allgemein → **VPN & Geräteverwaltung** → deine Apple-ID antippen → **Vertrauen**.
-3. Saatzeit auf dem Home-Bildschirm öffnen. 🌱
+### Nach einer Änderung an Saatzeit
 
-## 6. Erinnerungen einschalten
+```
+cd ~/Documents/Saatzeit/saatzeit-ios
+npm run ios:update
+npx cap open ios
+```
 
-Oben in der App auf **Erinnerungen: aus** tippen und die Mitteilungen erlauben. Saatzeit erinnert dich dann an:
+Dann in Xcode ▶. Bietet Xcode «Update to recommended settings» an, kannst du das annehmen: `npm run ios:update`
+stellt danach wieder ein, was Saatzeit braucht. `npm run ios:prepare` läuft nur beim ersten Mal, solange der Ordner `ios/` noch nicht existiert.
+Für einen ganz frischen Bau den Ordner `ios/` löschen und wieder mit `npm run ios:prepare` beginnen.
+
+### Nach 7 Tagen
+
+Die App startet nicht mehr. iPhone anschliessen, Xcode öffnen und ▶ klicken. Die Einträge bleiben erhalten.
+
+---
+
+## Weg B: Codemagic und Sideloadly
+
+### 1. Geänderte Dateien auf GitHub
+
+Im Repository `Saatzteit-ios` mit **Add file → Upload files** die geänderten Dateien hochladen und auf
+**Commit changes** klicken. Meist ist das nur `www/index.html`. Wichtig: vorher den Ordner **`www`** öffnen,
+damit die Datei dort landet und nicht ganz oben. Einfacher und sicherer geht es mit
+[GitHub Desktop](https://desktop.github.com).
+
+### 2. App bauen lassen
+
+1. In [Codemagic](https://codemagic.io) die App **Saatzteit-ios** öffnen und auf **Start new build** klicken.
+2. Den Workflow **Saatzeit iPhone-Test (unsigniert)** und den Branch **main** wählen.
+3. Nach 10 bis 15 Minuten unter **Artifacts** die Datei `Saatzeit-unsigniert.ipa` herunterladen.
+
+Wird ein Schritt rot, kopiere den roten Teil des Protokolls in den Chat.
+
+### 3. Mit Sideloadly aufs iPhone
+
+1. Sideloadly **für macOS** von der offiziellen Seite [sideloadly.io](https://sideloadly.io) installieren und
+   die Hinweise dort für den Mac befolgen. iTunes braucht es auf dem Mac nicht.
+2. iPhone per Kabel anschliessen und **«Diesem Computer vertrauen»** bestätigen.
+3. Die `.ipa` ins Sideloadly-Fenster ziehen, deine Apple-ID eintragen und auf **Start** klicken.
+   Sideloadly leitet die Anmeldung nur an Apple weiter. Wer vorsichtig sein möchte, nimmt für Tests eine zweite,
+   kostenlose Apple-ID.
+4. Beim ersten Mal auf dem iPhone: Einstellungen → Allgemein → **VPN & Geräteverwaltung** → deine Apple-ID →
+   **Vertrauen**.
+
+Nach 7 Tagen dieselbe `.ipa` nochmals mit Sideloadly aufspielen. Die Einträge bleiben erhalten.
+
+---
+
+## Erinnerungen einschalten
+
+In Saatzeit im Menü **Meine Pflanzen** öffnen, zu **Erinnerungen** scrollen und auf **Erinnerungen: aus** tippen.
+Saatzeit erklärt kurz, wozu, danach fragt das iPhone nach der Erlaubnis. Saatzeit erinnert dann an:
 
 - wichtige Gartentermine, jeweils am Vorabend um 18 Uhr (zum Beispiel die Eisheiligen)
 - den Tag, an dem deine eingetragenen Pflanzungen erntereif werden, um 8 Uhr
 - markierte Pflanzen (★), eine Woche bevor die Zeit zum Säen oder Pflanzen abläuft
 - jeden Monatsanfang mit einem kurzen Überblick
 
-## Nach 7 Tagen
-
-Die App startet dann nicht mehr. Deine Daten bleiben aber erhalten.
-
-- Sideloadly erneut öffnen, dieselbe `.ipa` hineinziehen und auf **Start** klicken. Die App wird über die alte installiert, deine Einträge bleiben.
-- In Sideloadly lässt sich auch eine automatische Verlängerung einschalten, wenn PC und iPhone im selben WLAN sind.
-
 ## Gut zu wissen
 
 - Mit einer kostenlosen Apple-ID kannst du höchstens 3 solcher Apps gleichzeitig installiert haben.
-- **Sichere ab und zu:** Mit **Sichern** in «Mein Garten» legst du eine Kopie in Dateien oder iCloud Drive ab. Mit **Wiederherstellen** holst du sie zurück, zum Beispiel nach einem Handywechsel.
-- Ändert sich Saatzeit, lädst du die geänderten Dateien auf GitHub hoch, startest in Codemagic einen neuen Build und spielst die neue `.ipa` mit Sideloadly auf.
+- **Sichere ab und zu:** Unter **Meine Pflanzen → Sichern** legst du eine Kopie in Dateien oder iCloud Drive ab.
+  Mit **Wiederherstellen** holst du sie zurück, zum Beispiel nach einem Handywechsel.
+- Mit dem bezahlten Apple-Entwicklerkonto (99 USD pro Jahr) fällt die 7-Tage-Grenze weg. Dann kommt die App über
+  TestFlight aufs iPhone.
