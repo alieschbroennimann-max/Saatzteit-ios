@@ -195,9 +195,29 @@ button:focus-visible, select:focus-visible, input:focus-visible { outline: 2px s
 .more-list .chev { width: 18px; height: 18px; }
 .back { align-self: flex-start; display: inline-flex; align-items: center; min-height: 44px; color: var(--accent); text-decoration: none; font-weight: 600; margin-bottom: -8px; }
 .cal-foot { margin-top: -16px; }
+/* Einstellungen: Liste und Unterseiten */
+.setmain, .setsub { display: flex; flex-direction: column; gap: 24px; }
+.set-list .val { flex: none; max-width: 45%; color: var(--muted); font-weight: 400; font-size: .9rem; text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.set-list a span:not(.val) { flex: 1; }
+.sub-title { font-size: clamp(1.8rem, 6vw, 2.6rem); }
+.card-list { display: flex; flex-direction: column; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; }
+.sw-row { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 12px 16px; min-height: 56px; cursor: pointer; }
+.sw-row + .sw-row { border-top: 1px solid var(--line); }
+.sw-txt { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.sw-txt .meta { font-size: .85rem; }
+.card-list.off .sw-row { opacity: .5; }
+/* Schalter wie bei iOS */
+.switch { -webkit-appearance: none; appearance: none; flex: none; position: relative; width: 51px; height: 31px; margin: 0; padding: 0;
+  border: 0; border-radius: 999px; background: var(--line); cursor: pointer; transition: background .2s; }
+.switch::after { content: ""; position: absolute; top: 2px; left: 2px; width: 27px; height: 27px; border-radius: 50%; background: #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, .3); transition: transform .2s; }
+.switch:checked, .switch[aria-checked="true"] { background: var(--accent); }
+.switch:checked::after, .switch[aria-checked="true"]::after { transform: translateX(20px); }
+.switch:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
 /* Seiten */
 .view { display: flex; flex-direction: column; gap: 40px; }
+.view > :empty { display: none; } /* leere Bereiche (z. B. Statistik ohne Einträge) sollen keinen Abstand erzeugen */
 .page-head { display: flex; flex-direction: column; gap: 8px; }
 .page-title { font-size: clamp(2.2rem, 7vw, 3.4rem); font-weight: 800; line-height: 1; }
 .page-head .status { margin: 0; color: var(--muted); }
@@ -225,7 +245,7 @@ a.btn { color: inherit; text-decoration: none; display: inline-flex; align-items
 .prose h3:first-child { margin-top: 0; }
 .prose p, .prose ol, .prose ul { margin: 0; }
 .prose ol, .prose ul { padding-left: 1.3em; display: flex; flex-direction: column; gap: 6px; }
-.prose a { color: var(--accent); font-weight: 700; }
+.prose a, .meta a { color: var(--accent); font-weight: 700; }
 .legend-list { list-style: none; padding-left: 0 !important; }
 .legend-list li { display: flex; gap: 10px; align-items: baseline; }
 .legend-list .sw { flex: none; transform: translateY(-1px); }
@@ -487,7 +507,7 @@ html.locked, html.locked body { overflow: hidden; }
 .gcode-row input { flex: 1 1 220px; min-width: 0; font: inherit; color: var(--fg); background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; }
 .gcode-current { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
 .gcode-current code { font-family: var(--f-mono); font-size: 1rem; background: var(--surface-2); padding: 4px 10px; border-radius: 6px; }
-#remind[aria-pressed="true"], #d-bell[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); font-weight: 700; }
+
 .bell { display: flex; flex-direction: column; gap: 8px; margin-top: 4px; }
 .bell .meta { margin: 0; }
 .push-list { display: flex; flex-direction: column; gap: 4px; }
@@ -498,8 +518,7 @@ html.locked, html.locked body { overflow: hidden; }
 .moon-line { margin: 12px 0 0; }
 #hmoon p { margin: 0; }
 .moon-today { font-size: 1.05rem; }
-#mond { display: flex; max-width: 260px; }
-#mond button { flex: 1 1 0; }
+
 .btn {
   border: 1px solid var(--line); background: var(--surface); border-radius: 8px; padding: 7px 12px; font-size: .88rem;
 }
@@ -606,6 +625,7 @@ input, select, textarea { font-size: max(16px, 1rem) !important; }
   .row.head .pname { display: none; }
   .nb, .plant-form, .plant-form .more-grid { grid-template-columns: minmax(0, 1fr); }
   .facts { grid-template-columns: repeat(2, minmax(0, 1fr)); } /* kurze Werte: zu zweit nebeneinander */
+  .wrap, .view { gap: 28px; } /* auf dem Handy etwas enger, damit kurze Seiten ohne Scrollen passen */
   .entry { grid-template-columns: auto minmax(0, 1fr); align-items: start; }
   .entry .x { grid-column: 2; justify-self: start; }
   .topbar { align-items: center; }
@@ -726,7 +746,6 @@ input, select, textarea { font-size: max(16px, 1rem) !important; }
   <!-- Meine Pflanzen -->
   <div class="view" data-view="garten" hidden>
     <section class="page-head" aria-labelledby="h-garden">
-      <span class="label">Dein Gartentagebuch</span>
       <h2 id="h-garden" class="page-title">Meine Pflanzen</h2>
       <p class="status" id="gstatus"></p>
     </section>
@@ -738,113 +757,102 @@ input, select, textarea { font-size: max(16px, 1rem) !important; }
       <div id="favlist"></div>
     </section>
 
-    <section class="sub" id="gcode-sec" aria-labelledby="h-gcode" hidden>
-      <h3 id="h-gcode">Gemeinsamer Garten</h3>
-      <div class="gcode">
-        <div class="gcode-current" id="gcode-current"></div>
-        <form class="gcode-form" id="gcode-form">
-          <label for="gcode-input">Gartencode eingeben</label>
-          <div class="gcode-row">
-            <input type="text" id="gcode-input" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="z. B. kuerbis-minze-rande-4821">
-            <button class="btn primary" type="submit">Verbinden</button>
-          </div>
-        </form>
-        <div class="gcode-row">
-          <button class="btn" id="gcode-new" type="button">Neuen Garten erstellen</button>
-          <span class="meta" id="gcode-msg" role="status"></span>
-        </div>
-        <p class="meta">Wer den gleichen Gartencode eingibt, sieht und bearbeitet dieselben Einträge. Teile ihn nur mit Leuten, die mitgärtnern sollen.</p>
-      </div>
-    </section>
-
-    <section class="sub" id="remind-sec" aria-labelledby="h-remind" hidden>
-      <h3 id="h-remind">Erinnerungen</h3>
-      <p class="meta">Saatzeit meldet sich am Vorabend wichtiger Gartentermine, wenn eine deiner Pflanzungen erntereif wird, und eine Woche bevor die Zeit für eine markierte Pflanze abläuft. Auf der Seite einer Pflanze kannst du dich ausserdem an den Beginn ihrer Saatzeit erinnern lassen. Welche Mitteilungen du bekommst, wählst du unter <a href="#einstellungen">Einstellungen</a>.</p>
-      <div><button class="btn" id="remind" aria-pressed="false">Erinnerungen: aus</button></div>
-      <div class="confirm-box info" id="remind-ask" hidden>
-        <p><strong>Darf Saatzeit dir Mitteilungen schicken?</strong> Nur Gartenerinnerungen, meist ein paar pro Monat, nie Werbung. Gleich fragt dein Handy, ob du das erlaubst.</p>
-        <div class="consent-actions">
-          <button class="btn primary" id="remind-yes">Weiter</button>
-          <button class="btn" id="remind-no">Lieber nicht</button>
-        </div>
-      </div>
-      <p class="meta" id="remind-hint" hidden></p>
-    </section>
-
-    <section class="sub" aria-labelledby="h-backup">
-      <h3 id="h-backup">Sichern und Wiederherstellen</h3>
-      <p class="meta">Lege ab und zu eine Sicherung ab, zum Beispiel in iCloud Drive, Google Drive oder deinen Dateien. Dann geht beim Handywechsel nichts verloren.</p>
-      <div class="garden-actions">
-        <button class="btn" id="export">Sichern</button>
-        <button class="btn" id="import">Wiederherstellen</button>
-        <input type="file" id="importfile" accept="application/json,.json" hidden>
-      </div>
-      <p class="meta" id="gmsg" role="status"></p>
-    </section>
+    <p class="meta">Erinnerungen, Sichern und Wiederherstellen findest du unter <a href="#einstellungen">Mehr → Einstellungen</a>.</p>
   </div>
 
   <!-- Einstellungen -->
   <div class="view" data-view="einstellungen" hidden>
-    <section class="page-head">
-      <span class="label">Saatzeit anpassen</span>
-      <h2 class="page-title">Einstellungen</h2>
-    </section>
+    <div class="setmain">
+      <section class="page-head">
+        <h2 class="page-title">Einstellungen</h2>
+      </section>
+      <nav class="more-list set-list" aria-label="Einstellungen">
+        <a href="#einstellungen/lage"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 19l6-10 4 6 3-4 5 8z"/></svg><span>Lage</span><span class="val" id="sv-lage"></span><svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></a>
+        <a href="#einstellungen/darstellung"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 4a8 8 0 0 0 0 16z" fill="currentColor"/></svg><span>Darstellung</span><span class="val" id="sv-dar"></span><svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></a>
+        <a href="#einstellungen/mitteilungen" id="sr-push"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15z"/><path d="M10 20.5a2 2 0 0 0 4 0"/></svg><span>Mitteilungen</span><span class="val" id="sv-push"></span><svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></a>
+        <a href="#einstellungen/mond"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 14.5A7.5 7.5 0 0 1 9.5 5a7.5 7.5 0 1 0 9.5 9.5z"/></svg><span>Mondkalender</span><span class="val" id="sv-mond"></span><svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></a>
+        <a href="#einstellungen/eigene"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21V9"/><path d="M12 14c-3.2 0-5.5-2-5.5-5.2 3.2 0 5.5 2 5.5 5.2z"/><path d="M12 11c3.2 0 5.5-2 5.5-5.2-3.2 0-5.5 2-5.5 5.2z"/><path d="M17 17h4M19 15v4"/></svg><span>Eigene Pflanzen</span><span class="val" id="sv-own"></span><svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></a>
+        <a href="#einstellungen/daten"><svg viewBox="0 0 24 24" aria-hidden="true"><ellipse cx="12" cy="6" rx="7" ry="3"/><path d="M5 6v12c0 1.7 3.1 3 7 3s7-1.3 7-3V6"/><path d="M5 12c0 1.7 3.1 3 7 3s7-1.3 7-3"/></svg><span>Daten</span><span class="val">Sicherung</span><svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></a>
+      </nav>
+      <p class="meta app-version">Saatzeit</p>
+    </div>
 
-    <section class="sub" aria-labelledby="h-lage">
-      <h3 id="h-lage">Lage</h3>
+    <div class="setsub" data-sub="lage" hidden>
+      <a class="back" href="#einstellungen">‹ Einstellungen</a>
+      <h2 class="page-title sub-title">Lage</h2>
       <p class="meta">In kühleren Lagen beginnt der Frühling später und der Herbst früher. Saatzeit verschiebt die Termine um etwa zwei Wochen pro Stufe.</p>
       <div class="settings">
-        <select id="klima" aria-labelledby="h-lage">
+        <select id="klima" aria-label="Lage">
           <option value="-1">Mild (Genfersee, Basel, Tessin)</option>
           <option value="0" selected>Mittelland (400–650 m)</option>
           <option value="1">Voralpen oder kühle Lage (650–900 m)</option>
           <option value="2">Höhenlage (über 900 m)</option>
         </select>
       </div>
-    </section>
+    </div>
 
-    <section class="sub" aria-labelledby="h-theme">
-      <h3 id="h-theme">Darstellung</h3>
+    <div class="setsub" data-sub="darstellung" hidden>
+      <a class="back" href="#einstellungen">‹ Einstellungen</a>
+      <h2 class="page-title sub-title">Darstellung</h2>
+      <section class="sub"><h3>Farben</h3>
       <div class="seg" role="group" aria-label="Darstellung" id="theme">
         <button data-v="system" aria-pressed="true">Wie das Gerät</button>
         <button data-v="light" aria-pressed="false">Hell</button>
         <button data-v="dark" aria-pressed="false">Dunkel</button>
       </div>
-    </section>
-
-    <section class="sub" aria-labelledby="h-schrift">
-      <h3 id="h-schrift">Schriftgrösse</h3>
+      </section>
+      <section class="sub"><h3>Schriftgrösse</h3>
       <div class="seg" role="group" aria-label="Schriftgrösse" id="schrift">
         <button data-v="normal" aria-pressed="true">Normal</button>
         <button data-v="gross" aria-pressed="false" style="font-size:1.05em">Gross</button>
         <button data-v="sehrgross" aria-pressed="false" style="font-size:1.15em">Sehr gross</button>
       </div>
-    </section>
+      </section>
+    </div>
 
-    <section class="sub" id="push-sec" aria-labelledby="h-push" hidden>
-      <h3 id="h-push">Mitteilungen</h3>
-      <p class="meta" id="push-state"></p>
-      <div class="push-list" id="push-list">
-        <label class="check"><input type="checkbox" data-push="start"><span><strong>Was wann säen und pflanzen</strong><span class="meta">Am Morgen, an dem die Saatzeit beginnt. Für Pflanzen, bei denen du auf der Pflanzenseite die Erinnerung eingestellt hast.</span></span></label>
-        <label class="check"><input type="checkbox" data-push="ablauf"><span><strong>Letzte Woche zum Säen oder Pflanzen</strong><span class="meta">Für markierte Pflanzen (★), eine Woche bevor das Zeitfenster endet.</span></span></label>
-        <label class="check"><input type="checkbox" data-push="folge"><span><strong>Folgeschritte nach dem Vorziehen</strong><span class="meta">Pikieren, abhärten und auspflanzen, wenn du «Drinnen vorgezogen» eingetragen hast.</span></span></label>
-        <label class="check"><input type="checkbox" data-push="ernte"><span><strong>Erntereif</strong><span class="meta">Am Morgen, an dem eine deiner Pflanzungen erntereif wird.</span></span></label>
-        <label class="check"><input type="checkbox" data-push="termine"><span><strong>Gartentermine</strong><span class="meta">Am Vorabend, zum Beispiel vor den Eisheiligen.</span></span></label>
-        <label class="check"><input type="checkbox" data-push="monat"><span><strong>Monatsüberblick</strong><span class="meta">Am Monatsanfang: wie viele Pflanzen jetzt dran sind.</span></span></label>
+    <div class="setsub" data-sub="mitteilungen" hidden>
+      <a class="back" href="#einstellungen">‹ Einstellungen</a>
+      <h2 class="page-title sub-title">Mitteilungen</h2>
+      <section class="sub" id="remind-sec" hidden>
+        <div class="card-list">
+          <div class="sw-row"><span class="sw-txt"><strong>Erinnerungen</strong><span class="meta">Mitteilungen von Saatzeit auf diesem Handy</span></span><button class="switch" id="remind" type="button" role="switch" aria-checked="false" aria-label="Erinnerungen"></button></div>
+        </div>
+        <div class="confirm-box info" id="remind-ask" hidden>
+          <p><strong>Darf Saatzeit dir Mitteilungen schicken?</strong> Nur Gartenerinnerungen, meist ein paar pro Monat, nie Werbung. Gleich fragt dein Handy, ob du das erlaubst.</p>
+          <div class="consent-actions">
+            <button class="btn primary" id="remind-yes">Weiter</button>
+            <button class="btn" id="remind-no">Lieber nicht</button>
+          </div>
+        </div>
+        <p class="meta" id="remind-hint" hidden></p>
+      </section>
+      <section class="sub" id="push-sec" hidden>
+        <h3>Welche Mitteilungen</h3>
+        <p class="meta" id="push-state"></p>
+        <div class="card-list" id="push-list">
+        <label class="sw-row"><span class="sw-txt"><strong>Was wann säen und pflanzen</strong><span class="meta">Wenn die Saatzeit einer Pflanze mit Glocke beginnt.</span></span><input type="checkbox" class="switch" data-push="start"></label>
+        <label class="sw-row"><span class="sw-txt"><strong>Letzte Woche zum Säen</strong><span class="meta">Für markierte Pflanzen (★), eine Woche vor dem Ende.</span></span><input type="checkbox" class="switch" data-push="ablauf"></label>
+        <label class="sw-row"><span class="sw-txt"><strong>Folgeschritte</strong><span class="meta">Pikieren, abhärten, auspflanzen nach dem Vorziehen.</span></span><input type="checkbox" class="switch" data-push="folge"></label>
+        <label class="sw-row"><span class="sw-txt"><strong>Erntereif</strong><span class="meta">Wenn eine deiner Pflanzungen reif wird.</span></span><input type="checkbox" class="switch" data-push="ernte"></label>
+        <label class="sw-row"><span class="sw-txt"><strong>Gartentermine</strong><span class="meta">Am Vorabend, zum Beispiel vor den Eisheiligen.</span></span><input type="checkbox" class="switch" data-push="termine"></label>
+        <label class="sw-row"><span class="sw-txt"><strong>Monatsüberblick</strong><span class="meta">Am Monatsanfang.</span></span><input type="checkbox" class="switch" data-push="monat"></label>
+        </div>
+      </section>
+    </div>
+
+    <div class="setsub" data-sub="mond" hidden>
+      <a class="back" href="#einstellungen">‹ Einstellungen</a>
+      <h2 class="page-title sub-title">Mondkalender</h2>
+      <div class="card-list">
+        <div class="sw-row"><span class="sw-txt"><strong>Mondkalender anzeigen</strong><span class="meta">Auf «Heute» und bei jeder Pflanze</span></span><button class="switch" id="mond" type="button" role="switch" aria-checked="false" aria-label="Mondkalender anzeigen"></button></div>
       </div>
-    </section>
-
-    <section class="sub" aria-labelledby="h-mond">
-      <h3 id="h-mond">Mondkalender</h3>
       <p class="meta">Zeigt nach überlieferter Gärtnertradition, ob ein Wurzel-, Blatt-, Blüten- oder Fruchttag ist und ob der Mond zu- oder abnimmt. Eine Wirkung auf das Wachstum ist wissenschaftlich nicht belegt. Saatzeit berechnet den Mondstand selbst, vereinfacht und ohne Internet.</p>
-      <div class="seg" role="group" aria-label="Mondkalender" id="mond">
-        <button data-v="aus" aria-pressed="true">Aus</button>
-        <button data-v="an" aria-pressed="false">An</button>
-      </div>
-    </section>
+    </div>
 
-    <section class="sub" aria-labelledby="h-own">
-      <h3 id="h-own">Eigene Pflanzen</h3>
+    <div class="setsub" data-sub="eigene" hidden>
+      <a class="back" href="#einstellungen">‹ Einstellungen</a>
+      <h2 class="page-title sub-title">Eigene Pflanzen</h2>
+    <section class="sub">
       <p class="meta">Fehlt dir eine Pflanze oder eine Sorte? Erfasse sie hier. Sie erscheint danach im Kalender und in der Pflanzenliste, und du kannst sie unter «Angepflanzt» eintragen.</p>
       <div id="ownlist"></div>
       <form class="own-form" id="ownform" novalidate>
@@ -887,10 +895,39 @@ input, select, textarea { font-size: max(16px, 1rem) !important; }
         </div>
       </form>
     </section>
+    </div>
 
-    <section class="sub" aria-labelledby="h-data">
-      <h3 id="h-data">Daten</h3>
-      <p class="meta">Sichern und Wiederherstellen findest du unter <a href="#garten">Meine Pflanzen</a>. Die Sicherung enthält auch deine eigenen Pflanzen.</p>
+    <div class="setsub" data-sub="daten" hidden>
+      <a class="back" href="#einstellungen">‹ Einstellungen</a>
+      <h2 class="page-title sub-title">Daten</h2>
+    <section class="sub" aria-labelledby="h-backup">
+      <h3 id="h-backup">Sichern und Wiederherstellen</h3>
+      <p class="meta">Die Sicherung enthält deine Einträge, Markierungen und eigenen Pflanzen. Lege ab und zu eine ab, zum Beispiel in iCloud Drive, Google Drive oder deinen Dateien. Dann geht beim Handywechsel nichts verloren.</p>
+      <div class="garden-actions">
+        <button class="btn" id="export">Sichern</button>
+        <button class="btn" id="import">Wiederherstellen</button>
+        <input type="file" id="importfile" accept="application/json,.json" hidden>
+      </div>
+      <p class="meta" id="gmsg" role="status"></p>
+    </section>
+
+    <section class="sub" id="gcode-sec" aria-labelledby="h-gcode" hidden>
+      <h3 id="h-gcode">Gemeinsamer Garten</h3>
+      <div class="gcode">
+        <div class="gcode-current" id="gcode-current"></div>
+        <form class="gcode-form" id="gcode-form">
+          <label for="gcode-input">Gartencode eingeben</label>
+          <div class="gcode-row">
+            <input type="text" id="gcode-input" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="z. B. kuerbis-minze-rande-4821">
+            <button class="btn primary" type="submit">Verbinden</button>
+          </div>
+        </form>
+        <div class="gcode-row">
+          <button class="btn" id="gcode-new" type="button">Neuen Garten erstellen</button>
+          <span class="meta" id="gcode-msg" role="status"></span>
+        </div>
+        <p class="meta">Wer den gleichen Gartencode eingibt, sieht und bearbeitet dieselben Einträge. Teile ihn nur mit Leuten, die mitgärtnern sollen.</p>
+      </div>
     </section>
 
     <section class="sub" aria-labelledby="h-reset">
@@ -905,14 +942,12 @@ input, select, textarea { font-size: max(16px, 1rem) !important; }
         </div>
       </div>
     </section>
-
-    <p class="meta app-version">Saatzeit</p>
+    </div>
   </div>
 
   <!-- Hilfe -->
   <div class="view" data-view="hilfe" hidden>
     <section class="page-head">
-      <span class="label">So funktioniert Saatzeit</span>
       <h2 class="page-title">Hilfe</h2>
     </section>
     <div class="prose">
@@ -944,7 +979,7 @@ input, select, textarea { font-size: max(16px, 1rem) !important; }
       <p>Unter «Meine Pflanzen» oder in der Pflanze selbst auf «Löschen» tippen und nochmals bestätigen.</p>
 
       <h3>Sichern</h3>
-      <p>Unter «Meine Pflanzen» legst du mit «Sichern» eine Kopie deiner Einträge ab und holst sie mit «Wiederherstellen» zurück.</p>
+      <p>Unter «Mehr → Einstellungen → Daten» legst du mit «Sichern» eine Kopie deiner Einträge ab und holst sie mit «Wiederherstellen» zurück.</p>
 
       <h3>Einstellungen</h3>
       <p>Unter «Mehr → Einstellungen» wählst du deine Lage, hellen oder dunklen Modus und eine grössere Schrift, bestimmst die Mitteilungen, schaltest den Mondkalender ein, erfasst eigene Pflanzen und kannst die App zurücksetzen.</p>
@@ -956,7 +991,6 @@ input, select, textarea { font-size: max(16px, 1rem) !important; }
   <!-- Fragen & Antworten -->
   <div class="view" data-view="faq" hidden>
     <section class="page-head">
-      <span class="label">Häufige Fragen</span>
       <h2 class="page-title">Fragen &amp; Antworten</h2>
     </section>
     <div class="faq">
@@ -967,9 +1001,9 @@ input, select, textarea { font-size: max(16px, 1rem) !important; }
       <details><summary>Wie wird «Ernte in ca. X Wochen» berechnet?</summary><div><p>Saatzeit nimmt das Datum deines Eintrags und rechnet die übliche Wachstumszeit der Pflanze dazu. Fällt das Ergebnis ausserhalb der Erntezeit, springt es zum nächsten Erntefenster. Ein Radieschen, das du im Spätherbst säst, wird darum erst im Frühling reif.</p></div></details>
       <details><summary>Was sind gute und schlechte Nachbarn?</summary><div><p>Manche Pflanzen helfen sich gegenseitig, zum Beispiel halten Zwiebeln und Rüebli einander Schädlinge fern. Andere nehmen sich Nährstoffe weg oder fördern Krankheiten. Die Angaben findest du in jeder Pflanze ganz unten.</p></div></details>
       <details><summary>Wo werden meine Daten gespeichert?</summary><div><p>In der App und im Browser nur auf deinem Gerät. Saatzeit hat kein Konto und schickt deine Einträge nirgends hin.<span class="cloud-only" hidden> Nutzt du einen gemeinsamen Garten mit Gartencode, liegen die Einträge zusätzlich online, damit alle mit demselben Code sie sehen.</span></p></div></details>
-      <details><summary>Was passiert, wenn ich die App lösche?</summary><div><p>Dann sind auch deine Einträge auf dem Gerät weg. Lege vorher unter «Meine Pflanzen» mit «Sichern» eine Kopie ab.</p></div></details>
-      <details><summary>Wie nehme ich meine Einträge auf ein neues Handy mit?</summary><div><p>Auf dem alten Handy unter «Meine Pflanzen» auf «Sichern» tippen und die Datei in iCloud Drive oder Google Drive ablegen, oder sie dir selbst per Mail schicken. Auf dem neuen Handy auf «Wiederherstellen» tippen und die Datei auswählen.</p></div></details>
-      <details><summary>Warum bekomme ich keine Erinnerungen?</summary><div><p>Prüfe unter «Meine Pflanzen», ob die Erinnerungen eingeschaltet sind, unter «Einstellungen → Mitteilungen», ob die gewünschte Art ausgewählt ist, und in den Einstellungen deines Handys unter Mitteilungen bzw. Benachrichtigungen → Saatzeit, ob sie erlaubt sind. Auf Android-Handys kann zusätzlich das Akkusparen Erinnerungen verhindern: Erlaube Saatzeit in den Akku-Einstellungen die Hintergrundaktivität. Erinnerungen gibt es nur in der App, nicht im Browser.</p></div></details>
+      <details><summary>Was passiert, wenn ich die App lösche?</summary><div><p>Dann sind auch deine Einträge auf dem Gerät weg. Lege vorher unter «Mehr → Einstellungen → Daten» mit «Sichern» eine Kopie ab.</p></div></details>
+      <details><summary>Wie nehme ich meine Einträge auf ein neues Handy mit?</summary><div><p>Auf dem alten Handy unter «Mehr → Einstellungen → Daten» auf «Sichern» tippen und die Datei in iCloud Drive oder Google Drive ablegen, oder sie dir selbst per Mail schicken. Auf dem neuen Handy auf «Wiederherstellen» tippen und die Datei auswählen.</p></div></details>
+      <details><summary>Warum bekomme ich keine Erinnerungen?</summary><div><p>Prüfe unter «Mehr → Einstellungen → Mitteilungen», ob die Erinnerungen und die gewünschte Art eingeschaltet sind, und in den Einstellungen deines Handys unter Mitteilungen bzw. Benachrichtigungen → Saatzeit, ob sie erlaubt sind. Auf Android-Handys kann zusätzlich das Akkusparen Erinnerungen verhindern: Erlaube Saatzeit in den Akku-Einstellungen die Hintergrundaktivität. Erinnerungen gibt es nur in der App, nicht im Browser.</p></div></details>
       <details><summary>Was sind die Folgeschritte?</summary><div><p>Trägst du eine Pflanze als «Drinnen vorgezogen» ein, rechnet Saatzeit die nächsten Schritte aus: nach etwa drei Wochen pikieren, eine Woche vor dem Auspflanzen abhärten und auspflanzen, sobald das Zeitfenster beginnt. Du siehst den nächsten Schritt auf der Seite der Pflanze unter «Angepflanzt». In der App kommt auf Wunsch eine Mitteilung dazu. Die Zeitpunkte sind Faustregeln: Schau auf deine Pflanzen und ins Wetter.</p></div></details>
       <details><summary>Wie funktioniert der Mondkalender?</summary><div><p>Viele Gärtnerinnen und Gärtner richten sich nach dem Mond: An Wurzeltagen säen sie Rüebli und Kartoffeln, an Blatttagen Salat, an Blütentagen Blumen und an Fruchttagen Tomaten und Bohnen. Eine Wirkung ist wissenschaftlich nicht belegt. Saatzeit zeigt diese Tradition auf Wunsch an, unter «Einstellungen → Mondkalender». Den Mondstand berechnet Saatzeit selbst und vereinfacht, darum kann ein Tag an der Grenze von gedruckten Mondkalendern abweichen.</p></div></details>
       <details><summary>Kann ich eigene Pflanzen hinzufügen?</summary><div><p>Ja. Unter <a href="#einstellungen">Einstellungen</a> → «Eigene Pflanzen» erfasst du Name, Standort und die Monate zum Vorziehen, Säen, Auspflanzen und Ernten. Die Pflanze erscheint danach überall wie die eingebauten. Soll eine Pflanze fest in Saatzeit aufgenommen werden, <a href="mailto:aliesch.broennimann@outlook.com?subject=Saatzeit%3A%20Pflanzenwunsch">schreib eine E-Mail</a>.</p></div></details>
@@ -981,7 +1015,6 @@ input, select, textarea { font-size: max(16px, 1rem) !important; }
   <!-- Impressum -->
   <div class="view" data-view="impressum" hidden>
     <section class="page-head">
-      <span class="label">Angaben zur App</span>
       <h2 class="page-title">Impressum</h2>
     </section>
     <div class="prose">
@@ -2750,19 +2783,18 @@ function renderRemindBtn() {
   const b = document.getElementById("remind");
   document.getElementById("remind-sec").hidden = !Native;
   if (!Native) return;
-  b.setAttribute("aria-pressed", String(state.remind));
-  b.textContent = state.remind ? "Erinnerungen: an" : "Erinnerungen: aus";
+  b.setAttribute("aria-checked", String(state.remind));
 }
 const remEl = id => document.getElementById(id);
 // Die Erlaubnis wird erst erfragt, wenn jemand Erinnerungen einschaltet, nie beim Start.
 // Vorher erklärt Saatzeit kurz, wozu, weil das Handy seinen eigenen Dialog nur einmal zeigt.
 const SETTINGS_HINT = PLATFORM === "android"
-  ? "Mitteilungen sind für Saatzeit ausgeschaltet. Erlaube sie unter Einstellungen → Apps → Saatzeit → Benachrichtigungen, dann tippe nochmals auf den Knopf."
-  : "Mitteilungen sind für Saatzeit ausgeschaltet. Erlaube sie unter Einstellungen → Mitteilungen → Saatzeit, dann tippe nochmals auf den Knopf.";
+  ? "Mitteilungen sind für Saatzeit ausgeschaltet. Erlaube sie in den Handy-Einstellungen unter Apps → Saatzeit → Benachrichtigungen, dann tippe nochmals auf den Schalter."
+  : "Mitteilungen sind für Saatzeit ausgeschaltet. Erlaube sie in den iPhone-Einstellungen unter Mitteilungen → Saatzeit, dann tippe nochmals auf den Schalter.";
 function remindHint(text) { const h = remEl("remind-hint"); h.textContent = text || ""; h.hidden = !text; }
 function setRemind(on) {
   state.remind = on; store.set("saatzeit.erinnerungen", on);
-  remEl("remind-ask").hidden = true; remEl("remind").hidden = false;
+  remEl("remind-ask").hidden = true;
   renderRemindBtn(); scheduleReminders(); renderSettings();
 }
 async function notifyPermission() {
@@ -2774,18 +2806,18 @@ remEl("remind").addEventListener("click", async () => {
   const perm = await notifyPermission();
   if (perm === "granted") { setRemind(true); return; }
   if (perm === "denied") { remindHint(SETTINGS_HINT); return; }
-  remEl("remind-ask").hidden = false; remEl("remind").hidden = true; remEl("remind-yes").focus();
+  remEl("remind-ask").hidden = false; remEl("remind-yes").focus();
 });
-remEl("remind-no").addEventListener("click", () => { remEl("remind-ask").hidden = true; remEl("remind").hidden = false; remEl("remind").focus(); });
+remEl("remind-no").addEventListener("click", () => { remEl("remind-ask").hidden = true; remEl("remind").focus(); });
 remEl("remind-yes").addEventListener("click", async () => {
   let perm = "denied";
   try { perm = (await Native.Notify.requestPermissions()).display; } catch (e) {}
   if (perm === "granted") { setRemind(true); remindHint("Erinnerungen sind eingeschaltet."); }
-  else { remEl("remind-ask").hidden = true; remEl("remind").hidden = false; remindHint(SETTINGS_HINT); }
+  else { remEl("remind-ask").hidden = true; remindHint(SETTINGS_HINT); }
 });
 // Beim Start nur nachsehen (fragt nicht): Wurden Mitteilungen in den Handy-Einstellungen entzogen, Knopf auf «aus».
 if (Native && state.remind) notifyPermission().then(p => {
-  if (p !== "granted") { state.remind = false; store.set("saatzeit.erinnerungen", false); renderRemindBtn(); scheduleReminders(); }
+  if (p !== "granted") { state.remind = false; store.set("saatzeit.erinnerungen", false); renderRemindBtn(); scheduleReminders(); renderSettings(); }
 });
 
 /* ---------- Sichern und Wiederherstellen ---------- */
@@ -3100,7 +3132,7 @@ document.addEventListener("keydown", e => {
   if ((e.key === "Enter" || e.key === " ") && e.target.matches(".row.plant, .packet")) { e.preventDefault(); openDetail(e.target.dataset.id); }
 });
 document.getElementById("klima").addEventListener("change", e => {
-  state.shift = Number(e.target.value); store.set("saatzeit.shift", state.shift); renderAll(); queueReminders();
+  state.shift = Number(e.target.value); store.set("saatzeit.shift", state.shift); renderAll(); queueReminders(); renderSettings();
 });
 document.getElementById("q").addEventListener("input", e => { state.q = e.target.value; renderList(); });
 document.getElementById("ort").addEventListener("change", e => { state.ort = e.target.value; renderList(); });
@@ -3158,9 +3190,8 @@ document.getElementById("schrift").addEventListener("click", e => {
   renderSettings();
 });
 
-document.getElementById("mond").addEventListener("click", e => {
-  const b = e.target.closest("button"); if (!b) return;
-  state.moon = b.dataset.v === "an"; store.set("saatzeit.mond", state.moon);
+document.getElementById("mond").addEventListener("click", () => {
+  state.moon = !state.moon; store.set("saatzeit.mond", state.moon);
   renderSettings(); renderHero();
 });
 document.getElementById("push-list").addEventListener("change", e => {
@@ -3272,12 +3303,20 @@ function renderSettings() {
   document.querySelectorAll("#theme button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.v === t)));
   const ts = store.get("saatzeit.schrift", "normal");
   document.querySelectorAll("#schrift button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.v === ts)));
-  document.querySelectorAll("#mond button").forEach(b => b.setAttribute("aria-pressed", String((b.dataset.v === "an") === state.moon)));
+  $("mond").setAttribute("aria-checked", String(state.moon));
   $("push-sec").hidden = !Native;
+  $("sr-push").hidden = !Native; // Mitteilungen gibt es nur in der App
   document.querySelectorAll("#push-list input").forEach(i => { i.checked = state.push[i.dataset.push] !== false; });
-  $("push-state").innerHTML = state.remind
-    ? "Erinnerungen sind eingeschaltet. Hier wählst du, welche Saatzeit schicken darf."
-    : `Erinnerungen sind ausgeschaltet. Einschalten kannst du sie unter <a href="#garten">Meine Pflanzen</a>, danach gilt diese Auswahl.`;
+  $("push-list").classList.toggle("off", !state.remind);
+  $("push-state").textContent = state.remind ? "" : "Schalte zuerst die Erinnerungen ein. Danach gilt diese Auswahl.";
+  $("push-state").hidden = state.remind;
+  // Werte in der Übersicht
+  const klima = $("klima").selectedOptions[0];
+  $("sv-lage").textContent = klima ? klima.text.split(" (")[0].split(" oder ")[0] : "";
+  $("sv-dar").textContent = { system: "Wie das Gerät", light: "Hell", dark: "Dunkel" }[t] + (ts !== "normal" ? `, ${ts === "gross" ? "grosse" : "sehr grosse"} Schrift` : "");
+  $("sv-push").textContent = state.remind ? "An" : "Aus";
+  $("sv-mond").textContent = state.moon ? "An" : "Aus";
+  $("sv-own").textContent = String(PLANTS.filter(p => p.eigen).length || "Keine");
   const own = PLANTS.filter(p => p.eigen);
   $("ownlist").innerHTML = own.length ? own.map(p => `<div class="own-item">${icon(p)}
       <span class="txt"><strong>${esc(p.n)}</strong><span class="meta">${CAT[p.c]}${entriesFor(p.id).length ? ` · ${countText(entriesFor(p.id).length)}` : ""}</span></span>
@@ -3336,6 +3375,18 @@ function showView(v) {
 function route() {
   const h = decodeURIComponent(location.hash.slice(1));
   if (!document.getElementById("drawer").hidden) closeDetail();
+  // Einstellungen: #einstellungen zeigt die Liste, #einstellungen/lage usw. eine Unterseite
+  const [base, part] = h.split("/");
+  if (base === "einstellungen") {
+    showView("einstellungen");
+    const view = document.querySelector('.view[data-view="einstellungen"]');
+    const hit = part && view.querySelector(`.setsub[data-sub="${part}"]`);
+    view.querySelector(".setmain").hidden = !!hit;
+    view.querySelectorAll(":scope > .back").forEach(b => { b.hidden = !!hit; });
+    view.querySelectorAll(".setsub").forEach(x => { x.hidden = x !== hit; });
+    window.scrollTo(0, 0);
+    return;
+  }
   if (VIEWS[h]) { showView(h); window.scrollTo(0, 0); return; }
   const el = h && document.getElementById(h), view = el && el.closest(".view");
   showView(view ? view.dataset.view : "home");

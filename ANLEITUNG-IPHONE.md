@@ -110,20 +110,23 @@ Nach 7 Tagen dieselbe `.ipa` nochmals mit Sideloadly aufspielen. Die Einträge b
 
 ## Erinnerungen einschalten
 
-In Saatzeit im Menü **Meine Pflanzen** öffnen, zu **Erinnerungen** scrollen und auf **Erinnerungen: aus** tippen.
+In Saatzeit unten auf **Mehr** tippen, dann **Einstellungen → Mitteilungen** und den Schalter **Erinnerungen** einschalten.
 Saatzeit erklärt kurz, wozu, danach fragt das iPhone nach der Erlaubnis. Saatzeit erinnert dann an:
 
 - wichtige Gartentermine, jeweils am Vorabend um 18 Uhr (zum Beispiel die Eisheiligen)
 - den Tag, an dem deine eingetragenen Pflanzungen erntereif werden, um 8 Uhr
 - markierte Pflanzen (★), eine Woche bevor die Zeit zum Säen oder Pflanzen abläuft
-- den Beginn der Saatzeit einer Pflanze, um 9 Uhr: Auf der Seite der Pflanze unter **Wann** auf
-  **Erinnere mich, wenn es losgeht** tippen. Sind die Erinnerungen noch aus, schaltet der Knopf sie gleich ein.
+- den Beginn der Saatzeit einer Pflanze, um 9 Uhr: Auf der Seite der Pflanze oben auf die **Glocke** neben dem Stern
+  tippen. Sind die Erinnerungen noch aus, schaltet die Glocke sie gleich ein.
+- die Folgeschritte nach dem Vorziehen: pikieren, abhärten und auspflanzen
 - jeden Monatsanfang mit einem kurzen Überblick
+
+Unter **Mitteilungen** kannst du jede dieser Arten einzeln ein- und ausschalten.
 
 ## Gut zu wissen
 
 - Mit einer kostenlosen Apple-ID kannst du höchstens 3 solcher Apps gleichzeitig installiert haben.
-- **Sichere ab und zu:** Unter **Meine Pflanzen → Sichern** legst du eine Kopie in Dateien oder iCloud Drive ab.
+- **Sichere ab und zu:** Unter **Mehr → Einstellungen → Daten → Sichern** legst du eine Kopie in Dateien oder iCloud Drive ab.
   Mit **Wiederherstellen** holst du sie zurück, zum Beispiel nach einem Handywechsel.
 - Mit dem bezahlten Apple-Entwicklerkonto (99 USD pro Jahr) fällt die 7-Tage-Grenze weg. Dann kommt die App über
   TestFlight aufs iPhone.

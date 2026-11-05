@@ -6,7 +6,7 @@ Alle Daten bleiben auf dem Gerät. Es gibt kein Konto, keinen Server und kein Tr
 
 ## Funktionen
 
-- **Menü** mit fünf Seiten: Home, Meine Pflanzen, Hilfe, Fragen & Antworten und Impressum.
+- **Leiste unten** mit vier Reitern: Heute, Kalender, Meine Pflanzen und Mehr (Einstellungen, Hilfe, Fragen & Antworten, Impressum).
 - **Jetzt im …:** Die wichtigsten Arbeiten des Monats, der nächste Gartentermin (z. B. Eisheilige) und ein zufälliger Spruch aus 400 Einträgen: Bauernregeln zum Monat, saisonale Inspirationen für Konfitüre, Sirup, Tee und Deko sowie Gartensprüche. Die Farben der App wechseln mit der Jahreszeit.
 - **74 Pflanzen**, eingeteilt in Kräuter, Gemüse, Früchte und Blumen, jeweils mit:
   - Zeitfenstern zum Vorziehen, Säen, Auspflanzen und Ernten

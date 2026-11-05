@@ -39,7 +39,7 @@ Wird ein Schritt rot, kopiere den roten Text in den Chat.
 
 ColorOS beendet Apps im Hintergrund sehr streng. Damit die Erinnerungen kommen:
 
-1. In Saatzeit unter **Meine Pflanzen → Erinnerungen** einschalten und Benachrichtigungen erlauben.
+1. In Saatzeit unter **Mehr → Einstellungen → Mitteilungen** die Erinnerungen einschalten und Benachrichtigungen erlauben.
 2. **Einstellungen → Akku → App-Akkuverwaltung → Saatzeit** öffnen und **Hintergrundaktivität erlauben** einschalten.
    Je nach ColorOS-Version heisst das auch «Im Hintergrund ausführen» oder «Autostart erlauben».
 3. Falls vorhanden: **Einstellungen → App-Verwaltung → Saatzeit → Benachrichtigungen** auf erlaubt stellen.
