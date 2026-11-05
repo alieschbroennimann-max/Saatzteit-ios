@@ -6,6 +6,8 @@
 #      Xcode 27 baut dafuer nicht mehr. Passt die Podfile an und fuehrt danach "pod install" aus.
 #      Ausserdem Skript-Sandboxing aus, sonst darf das Kopierskript von CocoaPods nicht laufen.
 #   4. Versionsnummer der App (MARKETING_VERSION) aus package.json, z. B. 1.1.0. Passend dazu APP_VERSION in www/index.html.
+#   5. Scene-Lebenszyklus: ios-extras/SceneDelegate.swift und UIApplicationSceneManifest in der Info.plist.
+#      Ab iOS 27 beendet iOS Apps ohne Scenes sofort beim Start.
 # Aufruf nach "npx cap add ios" im Ordner saatzeit-ios:  ruby scripts/ios-setup.rb
 # Braucht das Gem "xcodeproj" (kommt mit CocoaPods mit). Kann beliebig oft laufen.
 
@@ -35,6 +37,12 @@ ref = group.files.find { |f| f.path == "PrivacyInfo.xcprivacy" } || group.new_re
 unless target.resources_build_phase.files_references.include?(ref)
   target.resources_build_phase.add_file_reference(ref, true)
 end
+# 5. Scene-Lebenszyklus (ab iOS 27 Pflicht, sonst beendet iOS die App beim Start): SceneDelegate.swift eintragen
+FileUtils.cp(File.join(root, "ios-extras", "SceneDelegate.swift"), File.join(app_dir, "SceneDelegate.swift"))
+scene_ref = group.files.find { |f| f.path == "SceneDelegate.swift" } || group.new_reference("SceneDelegate.swift")
+unless target.source_build_phase.files_references.include?(scene_ref)
+  target.source_build_phase.add_file_reference(scene_ref, true)
+end
 # Mindestversion im App-Projekt (Schritt 3, Plugins weiter unten)
 MIN_IOS = "15.0"
 (project.build_configurations + project.targets.flat_map(&:build_configurations)).each do |config|
@@ -60,8 +68,19 @@ plist_path = File.join(app_dir, "Info.plist")
 abort "Info.plist fehlt: #{plist_path}" unless File.file?(plist_path)
 plist = Xcodeproj::Plist.read_from_path(plist_path)
 plist["ITSAppUsesNonExemptEncryption"] = false
+# 5. Scene-Manifest: ein Fenster, Main.storyboard wie bisher, SceneDelegate aus ios-extras
+plist["UIApplicationSceneManifest"] = {
+  "UIApplicationSupportsMultipleScenes" => false,
+  "UISceneConfigurations" => {
+    "UIWindowSceneSessionRoleApplication" => [{
+      "UISceneConfigurationName" => "Default Configuration",
+      "UISceneDelegateClassName" => "$(PRODUCT_MODULE_NAME).SceneDelegate",
+      "UISceneStoryboardFile" => "Main"
+    }]
+  }
+}
 Xcodeproj::Plist.write_to_path(plist, plist_path)
-puts "Info.plist: ITSAppUsesNonExemptEncryption = NO"
+puts "Info.plist: ITSAppUsesNonExemptEncryption = NO, Scene-Manifest mit SceneDelegate"
 
 # 3. Mindestversion fuer die Plugins: Podfile anpassen, dann Pods neu einrichten
 podfile_path = File.join(root, "ios", "App", "Podfile")
