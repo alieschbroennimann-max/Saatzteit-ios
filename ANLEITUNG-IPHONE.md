@@ -77,12 +77,10 @@ Die App startet nicht mehr. iPhone anschliessen, Xcode öffnen und ▶ klicken. 
 
 ## Weg B: Codemagic und Sideloadly
 
-### 1. Geänderte Dateien auf GitHub
+### 1. Änderungen auf GitHub bringen
 
-Im Repository `Saatzteit-ios` mit **Add file → Upload files** die geänderten Dateien hochladen und auf
-**Commit changes** klicken. Meist ist das nur `www/index.html`. Wichtig: vorher den Ordner **`www`** öffnen,
-damit die Datei dort landet und nicht ganz oben. Einfacher und sicherer geht es mit
-[GitHub Desktop](https://desktop.github.com).
+Der Ordner `saatzeit-ios` auf dem Mac ist mit GitHub verbunden. In **GitHub Desktop** erscheinen alle Änderungen
+von selbst. Unten links eine kurze Beschreibung eintragen, auf **Commit to main** und danach oben auf **Push origin** klicken.
 
 ### 2. App bauen lassen
 

@@ -5,21 +5,10 @@ Dafür brauchst du kein Zusatzkonto und kein Android Studio. Die App läuft daue
 
 ---
 
-## 1. Geänderte Dateien auf GitHub hochladen
+## 1. Änderungen auf GitHub bringen
 
-Im Repository `Saatzteit-ios` mit **Add file → Upload files** diese Dateien ersetzen:
-
-| Datei auf dem Mac (`saatzeit-ios/…`) | Ort auf GitHub |
-|---|---|
-| `package.json` | ganz oben |
-| `capacitor.config.json` | ganz oben |
-| `codemagic.yaml` | ganz oben |
-| `.gitignore` | ganz oben (im Finder versteckt: mit Cmd + Shift + Punkt sichtbar machen, optional) |
-| `ANLEITUNG-ANDROID.md` | ganz oben |
-| `scripts/android-setup.mjs` | im Ordner **`scripts`** (setzt die Versionsnummer, ohne sie bricht der Bau ab) |
-| `www/index.html` | im Ordner **`www`** (vorher den Ordner `www` öffnen) |
-
-Danach auf **Commit changes** klicken.
+Der Ordner `saatzeit-ios` auf dem Mac ist mit GitHub verbunden. In **GitHub Desktop** erscheinen alle Änderungen
+von selbst. Unten links eine kurze Beschreibung eintragen, auf **Commit to main** und danach oben auf **Push origin** klicken.
 
 ## 2. APK bauen lassen
 

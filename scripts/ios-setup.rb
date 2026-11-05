@@ -43,6 +43,10 @@ MIN_IOS = "15.0"
   # Dann darf das Kopierskript von CocoaPods (Pods-App-frameworks.sh) nicht laufen und der Bau bricht ab.
   config.build_settings["ENABLE_USER_SCRIPT_SANDBOXING"] = "NO"
 end
+# Xcode 27 meldet Anfuehrungszeichen-Includes in den Headern von CapacitorCordova als Fehler. Pruefung aus
+# (nur auf Projektebene, auf dem Ziel App wuerde es die Einstellung von CocoaPods ueberdecken).
+project.build_configurations.each { |c| c.build_settings["CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER"] = "NO" }
+target.build_configurations.each { |c| c.build_settings.delete("CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER") }
 # 4. Versionsnummer
 require "json"
 version = JSON.parse(File.read(File.join(root, "package.json")))["version"]
@@ -63,16 +67,17 @@ puts "Info.plist: ITSAppUsesNonExemptEncryption = NO"
 podfile_path = File.join(root, "ios", "App", "Podfile")
 podfile = File.read(podfile_path)
 updated = podfile.sub(/^platform :ios, '[\d.]+'/, "platform :ios, '#{MIN_IOS}'")
-unless updated.include?("Saatzeit: Mindestversion")
-  updated = updated.sub("  assertDeploymentTarget(installer)\n",
-    "  assertDeploymentTarget(installer)\n" \
-    "  # Saatzeit: Mindestversion, eingetragen von scripts/ios-setup.rb\n" \
-    "  installer.pods_project.targets.each do |t|\n" \
-    "    t.build_configurations.each do |c|\n" \
-    "      c.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '#{MIN_IOS}' if c.build_settings['IPHONEOS_DEPLOYMENT_TARGET'].to_f < #{MIN_IOS}\n" \
-    "    end\n" \
-    "  end\n")
-end
+# Frueheren Saatzeit-Block entfernen und in aktueller Form neu eintragen
+updated = updated.gsub(/  # Saatzeit: Mindestversion.*?\n  end\n/m, "")
+updated = updated.sub("  assertDeploymentTarget(installer)\n",
+  "  assertDeploymentTarget(installer)\n" \
+  "  # Saatzeit: Mindestversion und Xcode-27-Anpassung, eingetragen von scripts/ios-setup.rb\n" \
+  "  installer.pods_project.targets.each do |t|\n" \
+  "    t.build_configurations.each do |c|\n" \
+  "      c.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '#{MIN_IOS}' if c.build_settings['IPHONEOS_DEPLOYMENT_TARGET'].to_f < #{MIN_IOS}\n" \
+  "      c.build_settings['CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER'] = 'NO'\n" \
+  "    end\n" \
+  "  end\n")
 File.write(podfile_path, updated) if updated != podfile
 # Immer ausfuehren, damit auch ein abgebrochener frueherer Lauf nachgeholt wird. Eigene Gem-Pfade nicht vererben.
 pod_env = { "GEM_PATH" => nil, "GEM_HOME" => nil, "RUBYOPT" => nil }
