@@ -48,7 +48,7 @@ try {
   const C = window.Capacitor;
   if (!C || !C.isNativePlatform || !C.isNativePlatform() || typeof C.registerPlugin !== "function") return;
   const Prefs = C.registerPlugin("Preferences");
-  const keys = ["saatzeit.pflanzungen", "saatzeit.favs", "saatzeit.shift", "saatzeit.view", "saatzeit.erinnerungen", "saatzeit.zustimmung", "saatzeit.eigene", "saatzeit.theme", "saatzeit.schrift"];
+  const keys = ["saatzeit.pflanzungen", "saatzeit.favs", "saatzeit.shift", "saatzeit.view", "saatzeit.erinnerungen", "saatzeit.zustimmung", "saatzeit.eigene", "saatzeit.theme", "saatzeit.schrift", "saatzeit.start"];
   let restored = false;
   for (const k of keys) {
     if (localStorage.getItem(k) !== null) continue;
@@ -462,7 +462,9 @@ html.locked, html.locked body { overflow: hidden; }
 .gcode-row input { flex: 1 1 220px; min-width: 0; font: inherit; color: var(--fg); background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; }
 .gcode-current { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
 .gcode-current code { font-family: var(--f-mono); font-size: 1rem; background: var(--surface-2); padding: 4px 10px; border-radius: 6px; }
-#remind[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); font-weight: 700; }
+#remind[aria-pressed="true"], #d-bell[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); font-weight: 700; }
+.bell { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
+.bell .meta { margin: 0; }
 .btn {
   border: 1px solid var(--line); background: var(--surface); border-radius: 8px; padding: 7px 12px; font-size: .88rem;
 }
@@ -708,7 +710,7 @@ input, select, textarea { font-size: max(16px, 1rem) !important; }
 
     <section class="sub" id="remind-sec" aria-labelledby="h-remind" hidden>
       <h3 id="h-remind">Erinnerungen</h3>
-      <p class="meta">Saatzeit meldet sich am Vorabend wichtiger Gartentermine, wenn eine deiner Pflanzungen erntereif wird, und eine Woche bevor die Zeit für eine markierte Pflanze abläuft.</p>
+      <p class="meta">Saatzeit meldet sich am Vorabend wichtiger Gartentermine, wenn eine deiner Pflanzungen erntereif wird, und eine Woche bevor die Zeit für eine markierte Pflanze abläuft. Auf der Seite einer Pflanze kannst du dich ausserdem an den Beginn ihrer Saatzeit erinnern lassen.</p>
       <div><button class="btn" id="remind" aria-pressed="false">Erinnerungen: aus</button></div>
       <div class="confirm-box info" id="remind-ask" hidden>
         <p><strong>Darf Saatzeit dir Mitteilungen schicken?</strong> Nur Gartenerinnerungen, meist ein paar pro Monat, nie Werbung. Gleich fragt dein Handy, ob du das erlaubst.</p>
@@ -1960,7 +1962,8 @@ const state = {
   shift: Number(store.get("saatzeit.shift", 0)),
   cat: "all", ort: "all", q: "", onlyFav: false, view: store.get("saatzeit.view", "balken"),
   remind: store.get("saatzeit.erinnerungen", false),
-  favs: new Set(store.get("saatzeit.favs", []))
+  favs: new Set(store.get("saatzeit.favs", [])),
+  starts: new Set(store.get("saatzeit.start", [])) // Glocke auf der Pflanzenseite: Erinnerung zum Beginn der Zeitfenster
 };
 document.getElementById("klima").value = String(state.shift);
 
@@ -2458,6 +2461,23 @@ document.getElementById("gcode-sec").addEventListener("click", async e => {
 let remindTimer = null;
 function queueReminders() { clearTimeout(remindTimer); remindTimer = setTimeout(scheduleReminders, 1200); }
 
+// Nächste Beginne der Zeitfenster (Vorziehen, Säen, Pflanzen) innerhalb eines Jahres, je Tag zusammengefasst, um 9 Uhr.
+// Ganzjährige Fenster haben keinen Beginn. Die Lage (state.shift) ist in windows() schon eingerechnet.
+function upcomingStarts(p, from = new Date()) {
+  const byDay = new Map();
+  for (const k of ["v", "d", "p"]) for (const [a, b] of windows(p, k)) {
+    if (a === 1 && b === 24) continue;
+    for (const y of [from.getFullYear(), from.getFullYear() + 1]) {
+      const at = new Date(y, Math.ceil(a / 2) - 1, a % 2 ? 1 : 16, 9);
+      if (at <= from || at - from > 366 * DAY) continue;
+      if (!byDay.has(+at)) byDay.set(+at, { at, items: [] });
+      byDay.get(+at).items.push({ k, b });
+    }
+  }
+  return [...byDay.values()].sort((x, y) => x.at - y.at);
+}
+const startText = s => s.items.map(({ k, b }) => `${KINDS.find(x => x.k === k).label} bis ${endLabel(b)}`).join(", ");
+
 function reminderList() {
   const t = new Date(), list = [];
   const at = (d, h) => { const x = new Date(d); x.setHours(h, 0, 0, 0); return x; };
@@ -2481,6 +2501,10 @@ function reminderList() {
       const d = at(new Date(end.getTime() - 6 * DAY), 9);
       if (soon(d)) list.push({ title: `Noch eine Woche: ${p.n}`, body: `${KINDS.find(x => x.k === k).label} ist bis ${endLabel(b)} möglich.`, at: d });
     }
+  }
+  // Glocke auf der Pflanzenseite: am Morgen, an dem ein Zeitfenster zum Vorziehen, Säen oder Pflanzen beginnt
+  for (const p of PLANTS.filter(x => state.starts.has(x.id))) for (const s of upcomingStarts(p, t)) {
+    list.push({ title: `${p.n}: Jetzt geht's los`, body: `Ab heute möglich: ${startText(s)}.`, at: s.at });
   }
   // Monatsanfang: kurzer Überblick
   for (let i = 1; i <= 3; i++) {
@@ -2549,6 +2573,7 @@ async function exportJSON() {
   const data = JSON.stringify({
     app: "Saatzeit", version: 1, exportiert: new Date().toISOString(),
     favoriten: [...state.favs],
+    startErinnerungen: [...state.starts],
     eigenePflanzen: store.get("saatzeit.eigene", []),
     pflanzungen: [...garden.entries].sort((x, y) => (x.datum || "").localeCompare(y.datum || ""))
       .map(e => ({ ...e, pflanzeName: plantById(e.pflanze)?.n || e.pflanze, artText: (ART[e.art] || ART.p).label }))
@@ -2607,6 +2632,10 @@ async function importJSON(text) {
     doc.favoriten.filter(plantById).forEach(id => state.favs.add(id));
     store.set("saatzeit.favs", [...state.favs]);
   }
+  if (doc && Array.isArray(doc.startErinnerungen)) {
+    doc.startErinnerungen.filter(plantById).forEach(id => state.starts.add(id));
+    store.set("saatzeit.start", [...state.starts]);
+  }
   renderAll(); gardenChanged();
   gmsg((added ? `${countText(added)} wiederhergestellt.` : "Alle Einträge aus der Datei sind schon vorhanden.")
     + (ownAdded ? ` ${ownAdded} eigene ${ownAdded === 1 ? "Pflanze" : "Pflanzen"} übernommen.` : "")
@@ -2644,6 +2673,60 @@ const NB_ALIAS = {
   Sellerie:"sellerie", Fenchel:"fenchel", Mangold:"mangold", Melisse:"melisse"
 };
 
+// Glocke: Mitteilung, wenn das nächste Zeitfenster der Pflanze beginnt (nur in der App)
+function bellHTML(p) {
+  if (!Native || !upcomingStarts(p).length) return "";
+  return `<div class="bell" id="d-bell-box" data-plant="${p.id}">
+      <div><button class="btn" id="d-bell" type="button" aria-pressed="false"></button></div>
+      <p class="meta" id="d-bell-hint" role="status"></p>
+      <div class="confirm-box info" id="d-bell-ask" hidden>
+        <p><strong>Darf Saatzeit dir Mitteilungen schicken?</strong> Nur Gartenerinnerungen, meist ein paar pro Monat, nie Werbung. Gleich fragt dein Handy, ob du das erlaubst.</p>
+        <div class="consent-actions">
+          <button class="btn primary" id="d-bell-yes" type="button">Weiter</button>
+          <button class="btn" id="d-bell-no" type="button">Lieber nicht</button>
+        </div>
+      </div>
+    </div>`;
+}
+function renderBell(note) {
+  const box = document.getElementById("d-bell-box");
+  if (!box) return;
+  const p = plantById(box.dataset.plant), next = upcomingStarts(p)[0], on = state.starts.has(p.id) && state.remind;
+  const b = document.getElementById("d-bell");
+  b.setAttribute("aria-pressed", String(on));
+  b.textContent = on ? "Erinnerung eingestellt" : "Erinnere mich, wenn es losgeht";
+  const when = next ? `${dateLong(next.at)} um 9 Uhr (${startText(next)})` : "";
+  document.getElementById("d-bell-hint").textContent = note || (on
+    ? `Saatzeit meldet sich am ${when}. Nochmals tippen schaltet die Erinnerung aus.`
+    : `Mitteilung am ${when}.`);
+}
+function setBell(id, on) {
+  on ? state.starts.add(id) : state.starts.delete(id);
+  store.set("saatzeit.start", [...state.starts]);
+  queueReminders();
+}
+async function bellClick() {
+  const id = document.getElementById("d-bell-box").dataset.plant;
+  if (state.remind) { setBell(id, !state.starts.has(id)); renderBell(); return; }
+  // Erinnerungen sind noch aus: einschalten, vorher wie unter «Meine Pflanzen» um Erlaubnis fragen
+  const perm = await notifyPermission();
+  if (perm === "granted") { setBell(id, true); setRemind(true); renderBell(); return; }
+  if (perm === "denied") { renderBell(SETTINGS_HINT); return; }
+  document.getElementById("d-bell-ask").hidden = false;
+  document.getElementById("d-bell").hidden = true;
+  document.getElementById("d-bell-yes").focus();
+}
+async function bellAsk(yes) {
+  const id = document.getElementById("d-bell-box").dataset.plant;
+  document.getElementById("d-bell-ask").hidden = true;
+  document.getElementById("d-bell").hidden = false;
+  if (!yes) { renderBell(); document.getElementById("d-bell").focus(); return; }
+  let perm = "denied";
+  try { perm = (await Native.Notify.requestPermissions()).display; } catch (e) {}
+  if (perm === "granted") { setBell(id, true); setRemind(true); renderBell(); }
+  else renderBell(SETTINGS_HINT);
+}
+
 let lastFocus = null;
 function openDetail(id) {
   const p = PLANTS.find(x => x.id === id);
@@ -2679,6 +2762,7 @@ function openDetail(id) {
       <div class="mticks">${MS.map((m, i) => `<span class="${i === now.getMonth() ? "cur" : ""}">${m[0]}</span>`).join("")}</div>
       ${trackHTML(p, true)}
       <div class="when">${when}</div>
+      ${bellHTML(p)}
     </div>
     <div class="block"><span class="label">Wie</span>
       <p>${esc(p.wie)}</p>
@@ -2702,6 +2786,7 @@ function openDetail(id) {
   document.getElementById("scrim").hidden = false;
   d.scrollTop = 0;
   renderHistory();
+  renderBell();
   document.getElementById("close").focus();
 }
 function closeDetail() {
@@ -2736,6 +2821,9 @@ document.addEventListener("click", e => {
     return;
   }
   if (e.target.closest("#export")) { exportJSON().catch(() => {}); return; }
+  if (e.target.closest("#d-bell")) { bellClick(); return; }
+  if (e.target.closest("#d-bell-yes")) { bellAsk(true); return; }
+  if (e.target.closest("#d-bell-no")) { bellAsk(false); return; }
   const star = e.target.closest("[data-star]");
   if (star) { e.stopPropagation(); toggleFav(star.dataset.star); return; }
   const m = e.target.closest(".mbtn");
@@ -2772,7 +2860,7 @@ document.addEventListener("keydown", e => {
   if ((e.key === "Enter" || e.key === " ") && e.target.matches(".row.plant, .packet")) { e.preventDefault(); openDetail(e.target.dataset.id); }
 });
 document.getElementById("klima").addEventListener("change", e => {
-  state.shift = Number(e.target.value); store.set("saatzeit.shift", state.shift); renderAll();
+  state.shift = Number(e.target.value); store.set("saatzeit.shift", state.shift); renderAll(); queueReminders();
 });
 document.getElementById("q").addEventListener("input", e => { state.q = e.target.value; renderList(); });
 document.getElementById("ort").addEventListener("change", e => { state.ort = e.target.value; renderList(); });

@@ -113,6 +113,8 @@ Saatzeit erklärt kurz, wozu, danach fragt das iPhone nach der Erlaubnis. Saatze
 - wichtige Gartentermine, jeweils am Vorabend um 18 Uhr (zum Beispiel die Eisheiligen)
 - den Tag, an dem deine eingetragenen Pflanzungen erntereif werden, um 8 Uhr
 - markierte Pflanzen (★), eine Woche bevor die Zeit zum Säen oder Pflanzen abläuft
+- den Beginn der Saatzeit einer Pflanze, um 9 Uhr: Auf der Seite der Pflanze unter **Wann** auf
+  **Erinnere mich, wenn es losgeht** tippen. Sind die Erinnerungen noch aus, schaltet der Knopf sie gleich ein.
 - jeden Monatsanfang mit einem kurzen Überblick
 
 ## Gut zu wissen
