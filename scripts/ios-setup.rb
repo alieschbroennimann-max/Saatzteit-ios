@@ -3,8 +3,10 @@
 #   1. Datenschutz-Manifest PrivacyInfo.xcprivacy nach ios/App/App kopieren und als Ressource der App eintragen
 #   2. Info.plist: ITSAppUsesNonExemptEncryption = NO (Saatzeit nutzt keine eigene Verschluesselung,
 #      sonst fragt App Store Connect bei jedem Build nach den Exportbestimmungen)
-#   3. Nur iPhone (TARGETED_DEVICE_FAMILY = 1), kein iPad. Mindestversion iOS 15.
-#   4. Versionsnummer der App (MARKETING_VERSION) aus package.json, z. B. 1.1.0. Passend dazu APP_VERSION in www/index.html.
+#   3. iPhone und iPad (TARGETED_DEVICE_FAMILY = 1,2). iPhone nur Hochformat, iPad in alle Richtungen. iOS 15.
+#   4. Versionsnummer (MARKETING_VERSION) und Build-Nummer (CURRENT_PROJECT_VERSION) aus package.json
+#      ("version", z. B. 1.2.0, und "build", z. B. 3). Passend dazu APP_VERSION in www/index.html.
+#      Vor jedem Upload zu Apple die Build-Nummer erhoehen: npm run build:next
 #   5. Xcode 27 meldet Anfuehrungszeichen-Includes im Cordova-Teil von Capacitor als Fehler: diese Pruefung aus.
 #   6. Signier-Team fuer Bauten auf dem eigenen Mac aus ios-team.txt (nicht auf GitHub, siehe .gitignore), falls vorhanden.
 # Den Scene-Lebenszyklus (ab iOS 27 Pflicht) bringt die Vorlage von Capacitor 8 selbst mit.
@@ -40,15 +42,18 @@ unless target.resources_build_phase.files_references.include?(ref)
   target.resources_build_phase.add_file_reference(ref, true)
 end
 
-# 3. Nur iPhone, iOS 15 / 4. Versionsnummer
+# 3. iPhone und iPad, iOS 15 / 4. Versions- und Build-Nummer
 MIN_IOS = "15.0"
-version = JSON.parse(File.read(File.join(root, "package.json")))["version"]
+pkg = JSON.parse(File.read(File.join(root, "package.json")))
+version, build = pkg["version"], pkg["build"].to_i
+abort "package.json: \"build\" fehlt oder ist kleiner als 1." if build < 1
 (project.build_configurations + target.build_configurations).each do |config|
   config.build_settings["IPHONEOS_DEPLOYMENT_TARGET"] = MIN_IOS
 end
 target.build_configurations.each do |config|
-  config.build_settings["TARGETED_DEVICE_FAMILY"] = "1"
+  config.build_settings["TARGETED_DEVICE_FAMILY"] = "1,2"
   config.build_settings["MARKETING_VERSION"] = version
+  config.build_settings["CURRENT_PROJECT_VERSION"] = build.to_s
 end
 # 6. Team (Personal Team), damit Xcode nach einem Neuaufbau von ios/ nicht nachfragt
 team_file = File.join(root, "ios-team.txt")
@@ -58,7 +63,7 @@ target.build_configurations.each { |c| c.build_settings["DEVELOPMENT_TEAM"] = te
 project.build_configurations.each { |c| c.build_settings["CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER"] = "NO" }
 project.save
 puts "PrivacyInfo.xcprivacy liegt in ios/App/App und ist im Projekt eingetragen."
-puts "App-Projekt: nur iPhone, iOS #{MIN_IOS} als Mindestversion, Version #{version}"
+puts "App-Projekt: iPhone und iPad, iOS #{MIN_IOS} als Mindestversion, Version #{version} (Build #{build})"
 
 # Alte Platzhalter-Startbilder der Vorlage entfernen, sobald capacitor-assets eigene erzeugt hat
 # (sonst warnt Xcode: The image set "Splash" has 3 unassigned children)
@@ -67,11 +72,15 @@ if Dir.glob(File.join(splash_dir, "Default@*")).any?
   Dir.glob(File.join(splash_dir, "splash-2732x2732*.png")).each { |f| File.delete(f) }
 end
 
-# 2. Exportbestimmungen, iPad-Angaben entfernen
+# 2. Exportbestimmungen / 3. Ausrichtung: iPhone nur Hochformat, iPad alle vier Richtungen
+#    (iPad-Apps sollen sich drehen lassen, sonst funktioniert Split View nicht)
 plist_path = File.join(app_dir, "Info.plist")
 abort "Info.plist fehlt: #{plist_path}" unless File.file?(plist_path)
 plist = Xcodeproj::Plist.read_from_path(plist_path)
 plist["ITSAppUsesNonExemptEncryption"] = false
-plist.delete("UISupportedInterfaceOrientations~ipad")
+plist["UISupportedInterfaceOrientations"] = ["UIInterfaceOrientationPortrait"]
+plist["UISupportedInterfaceOrientations~ipad"] = %w[UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown
+  UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight]
+plist.delete("UIRequiredDeviceCapabilities") if plist["UIRequiredDeviceCapabilities"] == ["armv7"] # veraltet, Xcode setzt arm64
 Xcodeproj::Plist.write_to_path(plist, plist_path)
-puts "Info.plist: ITSAppUsesNonExemptEncryption = NO"
+puts "Info.plist: ITSAppUsesNonExemptEncryption = NO, iPhone Hochformat, iPad alle Richtungen"

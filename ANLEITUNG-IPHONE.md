@@ -45,7 +45,7 @@ npx cap open ios
 ```
 
 `npm run ios:prepare` erzeugt den Ordner `ios/` mit dem Xcode-Projekt und die Icons, trägt das Datenschutz-Manifest
-ein und stellt auf «nur iPhone» mit iOS 15 als Mindestversion. Das dauert ein bis zwei Minuten.
+ein, stellt iOS 15 als Mindestversion ein und legt die Ausrichtung fest: iPhone nur Hochformat, iPad in alle Richtungen. Das dauert ein bis zwei Minuten.
 Liegt im Ordner `saatzeit-ios` eine Datei `ios-team.txt` mit deiner Team-ID, ist das Team schon eingetragen und
 Schritt 2 unten entfällt. Die Datei geht nicht auf GitHub.
 

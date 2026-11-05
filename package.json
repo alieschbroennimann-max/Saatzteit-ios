@@ -1,13 +1,15 @@
 {
   "name": "saatzeit",
   "version": "1.2.0",
+  "build": 1,
   "private": true,
-  "description": "Saatzeit: Pflanzkalender rund ums Haus als App für iPhone und Android",
+  "description": "Saatzeit: Pflanzkalender rund ums Haus als App für iPhone, iPad und Android",
   "scripts": {
     "core:copy": "node -e \"require('fs').copyFileSync('node_modules/@capacitor/core/dist/capacitor.js','www/capacitor.js')\"",
     "ios:prepare": "npm run core:copy && npx cap add ios && npx capacitor-assets generate --ios && npx cap sync ios && ruby scripts/ios-setup.rb",
     "ios:update": "npm run core:copy && npx cap sync ios && ruby scripts/ios-setup.rb",
-    "android:prepare": "npm run core:copy && npx cap add android && npx capacitor-assets generate --android && npx cap sync android && node scripts/android-setup.mjs"
+    "android:prepare": "npm run core:copy && npx cap add android && npx capacitor-assets generate --android && npx cap sync android && node scripts/android-setup.mjs",
+    "build:next": "node -e \"const f='package.json',fs=require('fs'),j=JSON.parse(fs.readFileSync(f));j.build=(j.build||0)+1;fs.writeFileSync(f,JSON.stringify(j,null,2)+'\\\\n');console.log('Build-Nummer jetzt '+j.build)\""
   },
   "dependencies": {
     "@capacitor/core": "^8.6.0",

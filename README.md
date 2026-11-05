@@ -48,13 +48,16 @@ Die nativen Projekte (`ios/`, `android/`) liegen nicht im Repository. Sie werden
 ## Technik
 
 - Reines HTML, CSS und JavaScript, ohne Framework und ohne Build-Schritt für die Oberfläche.
-- [Capacitor 8](https://capacitorjs.com) verpackt die Oberfläche als App für iPhone und Android. Verwendete Plugins:
+- [Capacitor 8](https://capacitorjs.com) verpackt die Oberfläche als App für iPhone, iPad und Android. Verwendete Plugins:
   - `@capacitor/preferences`: dauerhafter Speicher für Einträge, Favoriten und Einstellungen
   - `@capacitor/local-notifications`: Erinnerungen
   - `@capacitor/filesystem` und `@capacitor/share`: Sicherungsdatei schreiben und teilen
 - Im Browser läuft dieselbe Datei ohne die nativen Funktionen. Gespeichert wird dann im `localStorage`.
 
 ## Bauen
+
+Version und Build-Nummer stehen in `package.json` (`version`, `build`). Vor jedem Upload zu Apple oder Google die
+Build-Nummer erhöhen: `npm run build:next`. Die Einrichtungsskripte übernehmen beide Werte für iPhone, iPad und Android.
 
 ### In der Cloud (ohne Mac)
 
